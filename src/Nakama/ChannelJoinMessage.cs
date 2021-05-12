@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Send a channel join message to the server.
     /// </summary>
+    [DataContract]
     internal class ChannelJoinMessage
     {
         [DataMember(Name="hidden"), Preserve]

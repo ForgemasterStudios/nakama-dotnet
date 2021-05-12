@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// A leave message to a chat channel.
     /// </summary>
+    [DataContract]
     internal class ChannelLeaveMessage
     {
         [DataMember(Name="channel_id"), Preserve]

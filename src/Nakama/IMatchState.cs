@@ -49,6 +49,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatchState"/>
+    [DataContract]
     internal class MatchState : IMatchState
     {
         private static readonly byte[] NoBytes = new byte[0];

@@ -92,6 +92,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IStreamPresenceEvent"/>
+    [DataContract]
     internal class StreamPresenceEvent : IStreamPresenceEvent
     {
         public IEnumerable<IUserPresence> Leaves => _leaves ?? UserPresence.NoPresences;
@@ -112,6 +113,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IStreamState"/>
+    [DataContract]
     internal class StreamState : IStreamState
     {
         public IUserPresence Sender => _sender;
@@ -130,6 +132,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IStream"/>
+    [DataContract]
     internal class Stream : IStream
     {
         [DataMember(Name = "descriptor"), Preserve] public string Descriptor { get; set; }

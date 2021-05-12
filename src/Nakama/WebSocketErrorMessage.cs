@@ -22,6 +22,7 @@ namespace Nakama
     /// <summary>
     /// A logical error received on the WebSocket connection.
     /// </summary>
+    [DataContract]
     internal class WebSocketErrorMessage
     {
         [DataMember(Name = "code"), Preserve] public int Code { get; set; }

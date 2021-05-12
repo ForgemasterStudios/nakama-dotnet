@@ -57,6 +57,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class GroupUserListGroupUser : IGroupUserListGroupUser
     {
 
@@ -96,6 +97,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class UserGroupListUserGroup : IUserGroupListUserGroup
     {
 
@@ -178,6 +180,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class WriteLeaderboardRecordRequestLeaderboardRecordWrite : IWriteLeaderboardRecordRequestLeaderboardRecordWrite
     {
 
@@ -226,6 +229,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class WriteTournamentRecordRequestTournamentRecordWrite : IWriteTournamentRecordRequestTournamentRecordWrite
     {
 
@@ -294,6 +298,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccount : IApiAccount
     {
 
@@ -359,6 +364,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountApple : IApiAccountApple
     {
 
@@ -404,6 +410,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountCustom : IApiAccountCustom
     {
 
@@ -449,6 +456,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountDevice : IApiAccountDevice
     {
 
@@ -499,6 +507,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountEmail : IApiAccountEmail
     {
 
@@ -549,6 +558,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountFacebook : IApiAccountFacebook
     {
 
@@ -594,6 +604,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountFacebookInstantGame : IApiAccountFacebookInstantGame
     {
 
@@ -664,6 +675,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountGameCenter : IApiAccountGameCenter
     {
 
@@ -734,6 +746,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountGoogle : IApiAccountGoogle
     {
 
@@ -779,6 +792,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountSteam : IApiAccountSteam
     {
 
@@ -879,6 +893,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiChannelMessage : IApiChannelMessage
     {
 
@@ -982,6 +997,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiChannelMessageList : IApiChannelMessageList
     {
 
@@ -1051,6 +1067,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiCreateGroupRequest : IApiCreateGroupRequest
     {
 
@@ -1114,6 +1131,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiDeleteStorageObjectId : IApiDeleteStorageObjectId
     {
 
@@ -1152,6 +1170,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiDeleteStorageObjectsRequest : IApiDeleteStorageObjectsRequest
     {
 
@@ -1196,6 +1215,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiEvent : IApiEvent
     {
 
@@ -1256,6 +1276,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiFriend : IApiFriend
     {
 
@@ -1300,6 +1321,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiFriendList : IApiFriendList
     {
 
@@ -1389,6 +1411,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiGroup : IApiGroup
     {
 
@@ -1477,6 +1500,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiGroupList : IApiGroupList
     {
 
@@ -1516,6 +1540,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiGroupUserList : IApiGroupUserList
     {
 
@@ -1605,6 +1630,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiLeaderboardRecord : IApiLeaderboardRecord
     {
 
@@ -1703,6 +1729,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiLeaderboardRecordList : IApiLeaderboardRecordList
     {
 
@@ -1753,6 +1780,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiLinkSteamRequest : IApiLinkSteamRequest
     {
 
@@ -1812,6 +1840,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiMatch : IApiMatch
     {
 
@@ -1865,6 +1894,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiMatchList : IApiMatchList
     {
 
@@ -1924,6 +1954,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiNotification : IApiNotification
     {
 
@@ -1987,6 +2018,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiNotificationList : IApiNotificationList
     {
 
@@ -2031,6 +2063,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiReadStorageObjectId : IApiReadStorageObjectId
     {
 
@@ -2069,6 +2102,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiReadStorageObjectsRequest : IApiReadStorageObjectsRequest
     {
 
@@ -2108,6 +2142,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiRpc : IApiRpc
     {
 
@@ -2156,6 +2191,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiSession : IApiSession
     {
 
@@ -2199,6 +2235,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiSessionLogoutRequest : IApiSessionLogoutRequest
     {
 
@@ -2237,6 +2274,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiSessionRefreshRequest : IApiSessionRefreshRequest
     {
 
@@ -2317,6 +2355,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObject : IApiStorageObject
     {
 
@@ -2400,6 +2439,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObjectAck : IApiStorageObjectAck
     {
 
@@ -2443,6 +2483,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObjectAcks : IApiStorageObjectAcks
     {
 
@@ -2477,6 +2518,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObjectList : IApiStorageObjectList
     {
 
@@ -2511,6 +2553,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObjects : IApiStorageObjects
     {
 
@@ -2620,6 +2663,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiTournament : IApiTournament
     {
 
@@ -2733,6 +2777,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiTournamentList : IApiTournamentList
     {
 
@@ -2782,6 +2827,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiTournamentRecordList : IApiTournamentRecordList
     {
 
@@ -2852,6 +2898,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUpdateAccountRequest : IApiUpdateAccountRequest
     {
 
@@ -2930,6 +2977,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUpdateGroupRequest : IApiUpdateGroupRequest
     {
 
@@ -3068,6 +3116,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUser : IApiUser
     {
 
@@ -3186,6 +3235,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUserGroupList : IApiUserGroupList
     {
 
@@ -3220,6 +3270,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUsers : IApiUsers
     {
 
@@ -3249,6 +3300,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiValidatePurchaseAppleRequest : IApiValidatePurchaseAppleRequest
     {
 
@@ -3277,6 +3329,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiValidatePurchaseGoogleRequest : IApiValidatePurchaseGoogleRequest
     {
 
@@ -3310,6 +3363,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiValidatePurchaseHuaweiRequest : IApiValidatePurchaseHuaweiRequest
     {
 
@@ -3343,6 +3397,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiValidatePurchaseResponse : IApiValidatePurchaseResponse
     {
 
@@ -3407,6 +3462,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiValidatedPurchase : IApiValidatedPurchase
     {
 
@@ -3497,6 +3553,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiWriteStorageObject : IApiWriteStorageObject
     {
 
@@ -3550,6 +3607,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiWriteStorageObjectsRequest : IApiWriteStorageObjectsRequest
     {
 
@@ -3584,6 +3642,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ProtobufAny : IProtobufAny
     {
 
@@ -3627,6 +3686,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class RpcStatus : IRpcStatus
     {
 

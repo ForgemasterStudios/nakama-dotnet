@@ -22,6 +22,7 @@ namespace Nakama
     /// <summary>
     /// A join message for a match on the server.
     /// </summary>
+    [DataContract]
     internal class MatchJoinMessage
     {
         [DataMember(Name="match_id"), Preserve]

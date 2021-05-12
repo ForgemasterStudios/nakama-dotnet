@@ -143,6 +143,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class {{ $classname }} : I{{ $classname }}
     {
         {{- range $propname, $property := $definition.Properties }}

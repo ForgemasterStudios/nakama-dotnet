@@ -56,6 +56,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatch"/>
+    [DataContract]
     internal class Match : IMatch
     {
         [DataMember(Name = "authoritative"), Preserve] public bool Authoritative { get; set; }

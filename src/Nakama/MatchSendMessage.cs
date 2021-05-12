@@ -22,6 +22,7 @@ namespace Nakama
     /// <summary>
     /// Send new state to a match on the server.
     /// </summary>
+    [DataContract]
     internal class MatchSendMessage
     {
         [DataMember(Name="match_id"), Preserve]

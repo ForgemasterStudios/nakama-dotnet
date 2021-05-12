@@ -31,6 +31,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IStatus"/>
+    [DataContract]
     internal class Status : IStatus
     {
         public IEnumerable<IUserPresence> Presences => _presences ?? UserPresence.NoPresences;
