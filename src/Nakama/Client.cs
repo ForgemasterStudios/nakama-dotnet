@@ -81,8 +81,7 @@ namespace Nakama
 
         private const int DefaultTimeout = 15;
 
-        public Client(string serverKey, bool autoRefreshSession = true) : this(serverKey, HttpRequestAdapter.WithGzip(),
-            new TinyJson.TinyJsonSerializer(), autoRefreshSession)
+        public Client(string serverKey, bool autoRefreshSession = true) : this(serverKey, HttpRequestAdapter.WithGzip(), autoRefreshSession)
         {
         }
 

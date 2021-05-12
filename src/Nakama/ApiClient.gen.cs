@@ -3662,10 +3662,14 @@ namespace Nakama
         public readonly IJsonSerializer JsonSerializer;
         public int Timeout { get; set; }
 
-        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, int timeout = 10)
+        private readonly Uri _baseUri;
+
+        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, IJsonSerializer jsonSerializer, int timeout = 10)
         {
             _baseUri = baseUri;
             HttpAdapter = httpAdapter;
+            JsonSerializer = jsonSerializer;
+            Timeout = timeout;
         }
 
         /// <summary>
@@ -3717,8 +3721,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiAccount>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiAccount>(contents);
         }
 
         /// <summary>
@@ -3794,8 +3798,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -3838,8 +3842,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -3882,8 +3886,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -3926,8 +3930,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -3974,8 +3978,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4018,8 +4022,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4062,8 +4066,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4106,8 +4110,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4154,8 +4158,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiSession>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4489,10 +4493,10 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return contents.FromJson<ApiSession>();
+            return JsonSerializer.FromJson<ApiSession>(contents);
         }
 
         /// <summary>
@@ -4833,8 +4837,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiChannelMessageList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiChannelMessageList>(contents);
         }
 
         /// <summary>
@@ -4941,8 +4945,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiFriendList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiFriendList>(contents);
         }
 
         /// <summary>
@@ -5086,7 +5090,7 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
         }
@@ -5126,8 +5130,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiGroupList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiGroupList>(contents);
         }
 
         /// <summary>
@@ -5160,8 +5164,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiGroup>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiGroup>(contents);
         }
 
         /// <summary>
@@ -5529,8 +5533,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiGroupUserList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiGroupUserList>(contents);
         }
 
         /// <summary>
@@ -5561,10 +5565,10 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return contents.FromJson<ApiValidatePurchaseResponse>();
+            return JsonSerializer.FromJson<ApiValidatePurchaseResponse>(contents);
         }
 
         /// <summary>
@@ -5595,10 +5599,10 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return contents.FromJson<ApiValidatePurchaseResponse>();
+            return JsonSerializer.FromJson<ApiValidatePurchaseResponse>(contents);
         }
 
         /// <summary>
@@ -5629,10 +5633,10 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return contents.FromJson<ApiValidatePurchaseResponse>();
+            return JsonSerializer.FromJson<ApiValidatePurchaseResponse>(contents);
         }
 
         /// <summary>
@@ -5713,8 +5717,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiLeaderboardRecordList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiLeaderboardRecordList>(contents);
         }
 
         /// <summary>
@@ -5753,8 +5757,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiLeaderboardRecord>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiLeaderboardRecord>(contents);
         }
 
         /// <summary>
@@ -5800,8 +5804,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiLeaderboardRecordList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiLeaderboardRecordList>(contents);
         }
 
         /// <summary>
@@ -5851,8 +5855,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiMatchList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiMatchList>(contents);
         }
 
         /// <summary>
@@ -5917,8 +5921,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiNotificationList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiNotificationList>(contents);
         }
 
         /// <summary>
@@ -5961,8 +5965,8 @@ namespace Nakama
             }
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiRpc>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiRpc>(contents);
         }
 
         /// <summary>
@@ -6008,8 +6012,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiRpc>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiRpc>(contents);
         }
 
         /// <summary>
@@ -6040,7 +6044,7 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var jsonBody = body.ToJson();
+            var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
             await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
         }
@@ -6075,8 +6079,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObjects>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiStorageObjects>(contents);
         }
 
         /// <summary>
@@ -6109,8 +6113,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObjectAcks>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiStorageObjectAcks>(contents);
         }
 
         /// <summary>
@@ -6187,8 +6191,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObjectList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiStorageObjectList>(contents);
         }
 
         /// <summary>
@@ -6234,8 +6238,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObjectList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiStorageObjectList>(contents);
         }
 
         /// <summary>
@@ -6285,8 +6289,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiTournamentList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiTournamentList>(contents);
         }
 
         /// <summary>
@@ -6335,8 +6339,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiTournamentRecordList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiTournamentRecordList>(contents);
         }
 
         /// <summary>
@@ -6375,8 +6379,8 @@ namespace Nakama
             byte[] content = null;
             var jsonBody = JsonSerializer.ToJson(body);
             content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiLeaderboardRecord>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiLeaderboardRecord>(contents);
         }
 
         /// <summary>
@@ -6454,8 +6458,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiTournamentRecordList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiTournamentRecordList>(contents);
         }
 
         /// <summary>
@@ -6496,8 +6500,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiUsers>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiUsers>(contents);
         }
 
         /// <summary>
@@ -6541,8 +6545,8 @@ namespace Nakama
             headers.Add("Authorization", header);
 
             byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiUserGroupList>();
+            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<ApiUserGroupList>(contents);
         }
     }
 }
