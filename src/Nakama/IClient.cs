@@ -1,18 +1,16 @@
-/**
- * Copyright 2018 The Nakama Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2018 The Nakama Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 using System;
 using System.Collections.Generic;
@@ -25,6 +23,11 @@ namespace Nakama
     /// </summary>
     public interface IClient
     {
+        /// <summary>
+        /// True if the session should be refreshed with an active refresh token.
+        /// </summary>
+        bool AutoRefreshSession { get; }
+
         /// <summary>
         /// The host address of the server. Defaults to "127.0.0.1".
         /// </summary>
@@ -75,7 +78,8 @@ namespace Nakama
         /// <param name="token">The ID token received from Apple to validate.</param>
         /// <param name="vars">Extra information that will be bundled in the session token.</param>
         /// <returns>A task which resolves to a session object.</returns>
-        Task<ISession> AuthenticateAppleAsync(string token, string username = null, bool create = true, Dictionary<string, string> vars = null);
+        Task<ISession> AuthenticateAppleAsync(string token, string username = null, bool create = true,
+            Dictionary<string, string> vars = null);
 
         /// <summary>
         /// Authenticate a user with a custom id.
@@ -158,15 +162,16 @@ namespace Nakama
         /// <param name="username">A username used to create the user. May be <c>null</c>.</param>
         /// <param name="create">If the user should be created when authenticated.</param>
         /// <param name="vars">Extra information that will be bundled in the session token.</param>
+        /// <param name="import">If the Steam friends should be imported.</param>
         /// <returns>A task which resolves to a session object.</returns>
         Task<ISession> AuthenticateSteamAsync(string token, string username = null, bool create = true,
-            Dictionary<string, string> vars = null);
+            bool import = true, Dictionary<string, string> vars = null);
 
         /// <summary>
         /// Ban a set of users from a group.
         /// </summary>
         /// <param name="session">The session of the user.</param>
-        /// <param name="ids">The group to ban the users from.</param>
+        /// <param name="groupId">The group to ban the users from.</param>
         /// <param name="usernames">The usernames of the users to ban.</param>
         /// <returns>A task which represents the asynchronous operation.</returns>
         Task BanGroupUsersAsync(ISession session, string groupId, IEnumerable<string> usernames);
@@ -284,6 +289,19 @@ namespace Nakama
         Task ImportFacebookFriendsAsync(ISession session, string token, bool? reset = null);
 
         /// <summary>
+        /// Import Steam friends and add them to the user's account.
+        /// </summary>
+        /// <remarks>
+        /// The server will import friends when the user authenticates with Steam. This function can be used to be
+        /// explicit with the import operation.
+        /// </remarks>
+        /// <param name="session">The session of the user.</param>
+        /// <param name="token">An access token from Steam.</param>
+        /// <param name="reset">If the Steam friend import for the user should be reset.</param>
+        /// <returns>A task which represents the asynchronous operation.</returns>
+        Task ImportSteamFriendsAsync(ISession session, string token, bool? reset = null);
+
+        /// <summary>
         /// Join a group if it has open membership or request to join it.
         /// </summary>
         /// <param name="session">The session of the user.</param>
@@ -385,8 +403,9 @@ namespace Nakama
         /// </summary>
         /// <param name="session">The session of the user.</param>
         /// <param name="token">An authentication token from the Steam network.</param>
+        /// <param name="import">If the Steam friends should be imported.</param>
         /// <returns>A task which represents the asynchronous operation.</returns>
-        Task LinkSteamAsync(ISession session, string token);
+        Task LinkSteamAsync(ISession session, string token, bool import);
 
         /// <summary>
         /// List messages from a chat channel.
@@ -431,7 +450,8 @@ namespace Nakama
         /// <param name="limit">The number of groups to list.</param>
         /// <param name="cursor">A cursor for the current position in the group listing.</param>
         /// <returns>A task which resolves to the group user objects.</returns>
-        Task<IApiGroupUserList> ListGroupUsersAsync(ISession session, string groupId, int? state = null, int limit = 1, string cursor = null);
+        Task<IApiGroupUserList> ListGroupUsersAsync(ISession session, string groupId, int? state = null, int limit = 1,
+            string cursor = null);
 
         /// <summary>
         /// List groups on the server.
@@ -538,13 +558,13 @@ namespace Nakama
         /// <param name="session">The session of the user.</param>
         /// <param name="categoryStart">The start of the category of tournaments to include.</param>
         /// <param name="categoryEnd">The end of the category of tournaments to include.</param>
-        /// <param name="startTime">The start time of the tournaments. (UNIX timestamp)</param>
-        /// <param name="endTime">The end time of the tournaments. (UNIX timestamp)</param>
+        /// <param name="startTime">The start time of the tournaments. (UNIX timestamp). If null, tournaments will not be filtered by start time.</param>
+        /// <param name="endTime">The end time of the tournaments. (UNIX timestamp). If null, tournaments will not be filtered by end time.</param>
         /// <param name="limit">The number of tournaments to list.</param>
         /// <param name="cursor">An optional cursor for the next page of tournaments.</param>
         /// <returns>A task which resolves to the list of tournament objects.</returns>
         Task<IApiTournamentList> ListTournamentsAsync(ISession session, int categoryStart, int categoryEnd,
-            int startTime, int endTime, int limit = 1, string cursor = null);
+            int? startTime = null, int? endTime = null, int limit = 1, string cursor = null);
 
         /// <summary>
         /// List of groups the current user is a member of.
@@ -626,6 +646,30 @@ namespace Nakama
         /// <param name="payload">A payload to send with the function call.</param>
         /// <returns>A task to resolve an RPC response.</returns>
         Task<IApiRpc> RpcAsync(string httpKey, string id, string payload = null);
+
+        /// <summary>
+        /// Log out a session which invalidates the authorization and refresh token.
+        /// </summary>
+        /// <param name="session">The session to logout.</param>
+        /// <returns>A task which represents the asynchronous operation.</returns>
+        Task SessionLogoutAsync(ISession session);
+
+        /// <summary>
+        /// Log out a session which optionally invalidates the authorization and/or refresh tokens.
+        /// </summary>
+        /// <param name="authToken">The authorization token to invalidate, may be <c>null</c>.</param>
+        /// <param name="refreshToken">The refresh token to invalidate, may be <c>null</c>.</param>
+        /// <returns>A task which represents the asynchronous operation.</returns>
+        Task SessionLogoutAsync(string authToken, string refreshToken);
+
+        /// <summary>
+        /// Refresh the session unless the current refresh token has expired. If vars are specified they will replace
+        /// what is currently stored inside the session token.
+        /// </summary>
+        /// <param name="session">The session of the user.</param>
+        /// <param name="vars">Extra information which should be bundled inside the session token.</param>
+        /// <returns>A task which resolves to a new session object.</returns>
+        Task<ISession> SessionRefreshAsync(ISession session, Dictionary<string, string> vars = null);
 
         /// <summary>
         /// Remove the Apple ID from the social profiles on the current user's account.
@@ -727,6 +771,32 @@ namespace Nakama
         /// <returns>A task which represents the asynchronous operation.</returns>
         Task UpdateGroupAsync(ISession session, string groupId, string name, bool open, string description = null,
             string avatarUrl = null, string langTag = null);
+
+        /// <summary>
+        /// Validate a purchase receipt against the Apple App Store.
+        /// </summary>
+        /// <param name="session">The session of the user.</param>
+        /// <param name="receipt">The purchase receipt to be validated.</param>
+        /// <returns>A task which resolves to the validated list of purchase receipts.</returns>
+        Task<IApiValidatePurchaseResponse> ValidatePurchaseAppleAsync(ISession session, string receipt);
+
+        /// <summary>
+        /// Validate a purchase receipt against the Google Play Store.
+        /// </summary>
+        /// <param name="session">The session of the user.</param>
+        /// <param name="receipt">The purchase receipt to be validated.</param>
+        /// <returns>A task which resolves to the validated list of purchase receipts.</returns>
+        Task<IApiValidatePurchaseResponse> ValidatePurchaseGoogleAsync(ISession session, string receipt);
+
+        /// <summary>
+        /// Validate a purchase receipt against the Huawei AppGallery.
+        /// </summary>
+        /// <param name="session">The session of the user.</param>
+        /// <param name="receipt">The purchase receipt to be validated.</param>
+        /// <param name="signature">The signature of the purchase receipt.</param>
+        /// <returns>A task which resolves to the validated list of purchase receipts.</returns>
+        Task<IApiValidatePurchaseResponse> ValidatePurchaseHuaweiAsync(ISession session, string receipt,
+            string signature);
 
         /// <summary>
         /// Write a record to a leaderboard.

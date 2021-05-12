@@ -1,18 +1,16 @@
-/**
- * Copyright 2019 The Nakama Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2019 The Nakama Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 using System;
 using System.Collections.Generic;
@@ -235,6 +233,14 @@ namespace Nakama
         Task<IApiRpc> RpcAsync(string funcId, string payload = null);
 
         /// <summary>
+        /// Execute an RPC function to the server.
+        /// </summary>
+        /// <param name="funcId">The ID of the function to execute.</param>
+        /// <param name="payload">An (optional) payload sent to the server from the byte buffer.</param>
+        /// <returns>A task which resolves to the RPC function response object.</returns>
+        Task<IApiRpc> RpcAsync(string funcId, ArraySegment<byte> payload);
+
+        /// <summary>
         /// Send input to a multiplayer match on the server.
         /// </summary>
         /// /// <remarks>
@@ -246,6 +252,17 @@ namespace Nakama
         /// <param name="presences">The presences in the match who should receive the input.</param>
         /// <returns>A task which represents the asynchronous operation.</returns>
         Task SendMatchStateAsync(string matchId, long opCode, string state,
+            IEnumerable<IUserPresence> presences = null);
+
+        /// <summary>
+        /// Send input to a multiplayer match on the server.
+        /// </summary>
+        /// <param name="matchId">The ID of the match.</param>
+        /// <param name="opCode">An operation code for the input.</param>
+        /// <param name="state">The input data to send from the byte buffer.</param>
+        /// <param name="presences">The presences in the match who should receive the input.</param>
+        /// <returns>A task which represents the asynchronous operation.</returns>
+        Task SendMatchStateAsync(string matchId, long opCode, ArraySegment<byte> state,
             IEnumerable<IUserPresence> presences = null);
 
         /// <summary>

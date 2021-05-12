@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- A session can be refreshed on demand with "SessionRefreshAsync" method.
+- Session and/or refresh tokens can now be disabled with a client logout.
+- The client now supports session auto-refresh using refresh tokens. This is enabled by default.
+- New socket RPC and MatchSend methods using ArraySegment to allow developers to manage memory re-use.
+- Add IAP validation APIs for purchase receipts with Apple App Store, Google Play Store, and Huawei AppGallery.
+
+## [2.8.0] - 2020-02-19
+### Changed
+- Listing tournaments can now be done without providing start or end time filters.
+- Can now import Steam friends after authenticating or linking to a Steam account.
+
+## [2.7.1] - 2020-02-1
+### Fixed
+- HTTP Client now properly reads off timeout value.
 
 ## [2.7.0] - 2020-10-19
 ### Changed

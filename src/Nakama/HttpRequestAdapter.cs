@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Nakama.TinyJson;
 
@@ -40,6 +41,9 @@ namespace Nakama
         public HttpRequestAdapter(HttpClient httpClient)
         {
             _httpClient = httpClient;
+
+            // remove cap of max timeout on HttpClient from 100 seconds.
+            _httpClient.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
         }
 
         /// <inheritdoc cref="IHttpAdapter"/>
@@ -66,9 +70,12 @@ namespace Nakama
                 request.Content = new ByteArrayContent(body);
             }
 
+            var timeoutToken = new CancellationTokenSource();
+            timeoutToken.CancelAfter(TimeSpan.FromSeconds(timeout));
+
             Logger?.InfoFormat("Send: method='{0}', uri='{1}', body='{2}'", method, uri, body);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, timeoutToken.Token);
             var contents = await response.Content.ReadAsStringAsync();
             response.Content?.Dispose();
 
@@ -80,13 +87,14 @@ namespace Nakama
             }
 
             var decoded = contents.FromJson<Dictionary<string, object>>();
+            string message = decoded.ContainsKey("message") ? decoded["message"].ToString() : string.Empty;
+            int grpcCode = decoded.ContainsKey("code") ? (int) decoded["code"] : -1;
 
-            var exception = new ApiResponseException((int) response.StatusCode, decoded["message"].ToString(),
-                (int) decoded["code"]);
+            var exception = new ApiResponseException((int) response.StatusCode, message, grpcCode);
 
             if (decoded.ContainsKey("error"))
             {
-                this.CopyResponseError(decoded["error"], exception);
+                IHttpAdapterUtil.CopyResponseError(this, decoded["error"], exception);
             }
 
             throw exception;

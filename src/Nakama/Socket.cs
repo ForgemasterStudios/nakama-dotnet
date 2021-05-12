@@ -1,21 +1,18 @@
-/**
- * Copyright 2019 The Nakama Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2019 The Nakama Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -86,7 +83,9 @@ namespace Nakama
         private readonly ISocketAdapter _adapter;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly Uri _baseUri;
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>> _responses;
+        private readonly Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>> _responses;
+
+        private Object _lockObj = new Object();
 
         /// <summary>
         /// A new socket with default options.
@@ -118,22 +117,12 @@ namespace Nakama
             _adapter = adapter;
             _jsonSerializer = jsonSerializer;
             _baseUri = new UriBuilder(scheme, host, port).Uri;
-            _responses = new ConcurrentDictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>>();
+            _responses = new Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>>();
 
             _adapter.Connected += () => Connected?.Invoke();
             _adapter.Closed += () =>
             {
-                foreach (var response in _responses)
-                {
-                    response.Value.TrySetCanceled();
-                }
-
-                _responses.Clear();
-                Closed?.Invoke();
-            };
-            _adapter.ReceivedError += e =>
-            {
-                if (!_adapter.IsConnected)
+                lock (_lockObj)
                 {
                     foreach (var response in _responses)
                     {
@@ -143,8 +132,27 @@ namespace Nakama
                     _responses.Clear();
                 }
 
+                Closed?.Invoke();
+            };
+            _adapter.ReceivedError += e =>
+            {
+                if (!_adapter.IsConnected)
+                {
+                    lock (_lockObj)
+                    {
+
+                        foreach (var response in _responses)
+                        {
+                            response.Value.TrySetCanceled();
+                        }
+
+                        _responses.Clear();
+                    }
+                }
+
                 ReceivedError?.Invoke(e);
             };
+
             _adapter.Received += ReceivedMessage;
         }
 
@@ -371,7 +379,7 @@ namespace Nakama
             return SendAsync(envelope);
         }
 
-        /// <inheritdoc cref="RpcAsync"/>
+        /// <inheritdoc cref="RpcAsync(string,string)"/>
         public async Task<IApiRpc> RpcAsync(string funcId, string payload = null)
         {
             var envelope = new WebSocketMessageEnvelope
@@ -381,6 +389,22 @@ namespace Nakama
                 {
                     Id = funcId,
                     Payload = payload
+                }
+            };
+            var response = await SendAsync(envelope);
+            return response.Rpc;
+        }
+
+        /// <inheritdoc cref="RpcAsync(string,ArraySegment{byte})"/>
+        public async Task<IApiRpc> RpcAsync(string funcId, ArraySegment<byte> payload)
+        {
+            var envelope = new WebSocketMessageEnvelope
+            {
+                Cid = $"{_cid++}",
+                Rpc = new ApiRpc
+                {
+                    Id = funcId,
+                    Payload = Convert.ToBase64String(payload.Array, payload.Offset, payload.Count)
                 }
             };
             var response = await SendAsync(envelope);
@@ -404,6 +428,23 @@ namespace Nakama
                     OpCode = Convert.ToString(opCode),
                     Presences = BuildPresenceList(presences),
                     State = Convert.ToBase64String(state)
+                }
+            };
+            SendAsync(envelope);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc cref="SendMatchStateAsync(string,long,ArraySegment{byte},System.Collections.Generic.IEnumerable{Nakama.IUserPresence})"/>
+        public Task SendMatchStateAsync(string matchId, long opCode, ArraySegment<byte> state, IEnumerable<IUserPresence> presences = null)
+        {
+            var envelope = new WebSocketMessageEnvelope
+            {
+                MatchStateSend = new MatchSendMessage
+                {
+                    MatchId = matchId,
+                    OpCode = Convert.ToString(opCode),
+                    Presences = BuildPresenceList(presences),
+                    State = Convert.ToBase64String(state.Array, state.Offset, state.Count)
                 }
             };
             SendAsync(envelope);
@@ -529,24 +570,27 @@ namespace Nakama
             {
                 if (!string.IsNullOrEmpty(envelope.Cid))
                 {
-                    // Handle message response.
-                    TaskCompletionSource<WebSocketMessageEnvelope> completer;
-                    var cid = envelope.Cid;
-                    _responses.TryRemove(cid, out completer);
-                    if (completer == null)
+                    lock (_lockObj)
                     {
-                        Logger?.ErrorFormat("No completer for message cid: {0}", envelope.Cid);
-                        return;
-                    }
+                        // Handle message response.
+                        if (_responses.ContainsKey(envelope.Cid))
+                        {
+                            TaskCompletionSource<WebSocketMessageEnvelope> completer = _responses[envelope.Cid];
+                            _responses.Remove(envelope.Cid);
 
-                    if (envelope.Error != null)
-                    {
-                        completer.SetException(new WebSocketException(WebSocketError.InvalidState,
-                            envelope.Error.Message));
-                    }
-                    else
-                    {
-                        completer.SetResult(envelope);
+                            if (envelope.Error != null)
+                            {
+                                completer.SetException(new WebSocketException(WebSocketError.InvalidState, envelope.Error.Message));
+                            }
+                            else
+                            {
+                                completer.SetResult(envelope);
+                            }
+                        }
+                        else
+                        {
+                            Logger?.ErrorFormat("No completer for message cid: {0}", envelope.Cid);
+                        }
                     }
                 }
                 else if (envelope.Error != null)
@@ -612,9 +656,13 @@ namespace Nakama
                 _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
                 return null; // No response required.
             }
-
             var completer = new TaskCompletionSource<WebSocketMessageEnvelope>();
-            _responses[envelope.Cid] = completer;
+
+            lock (_lockObj)
+            {
+                _responses[envelope.Cid] = completer;
+            }
+
             _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
             return completer.Task;
         }
