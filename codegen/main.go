@@ -39,7 +39,6 @@ namespace Nakama
     using System.Runtime.Serialization;
     using System.Text;
     using System.Threading.Tasks;
-    using TinyJson;
 
     /// <summary>
     /// An exception generated for <c>HttpResponse</c> objects don't return a success status.
