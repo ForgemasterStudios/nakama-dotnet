@@ -42,6 +42,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IStatusPresenceEvent"/>
+    [DataContract]
     internal class StatusPresenceEvent : IStatusPresenceEvent
     {
         public IEnumerable<IUserPresence> Leaves => _leaves ?? UserPresence.NoPresences;

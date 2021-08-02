@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Remove the user from the matchmaker pool by ticket.
     /// </summary>
+    [DataContract]
     internal class MatchmakerRemoveMessage
     {
         [DataMember(Name="ticket"), Preserve]

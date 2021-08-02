@@ -22,6 +22,7 @@ namespace Nakama
     /// <summary>
     /// Unfollow one or more users on the server.
     /// </summary>
+    [DataContract]
     internal class StatusUnfollowMessage
     {
         [DataMember(Name="user_ids"), Preserve]

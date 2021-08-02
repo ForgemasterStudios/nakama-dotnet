@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Nakama Authors
+ * Copyright 2020 The Nakama Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-using System.Runtime.Serialization;
-
-namespace Nakama
+namespace Nakama.TinyJson
 {
     /// <summary>
-    /// A leave message to a chat channel.
+    /// This class is an integration between the <see cref="IJsonSerializer.cs"> interface
+    /// and TinyJson.
     /// </summary>
-    [DataContract]
-    internal class ChannelLeaveMessage
+    public class TinyJsonSerializer : IJsonSerializer
     {
-        [DataMember(Name="channel_id"), Preserve]
-        public string ChannelId { get; set; }
-
-        public override string ToString()
+        public T FromJson<T>(string json)
         {
-            return $"ChannelLeaveMessage(ChannelId='{ChannelId}')";
+            return JsonParser.FromJson<T>(json);
+        }
+
+        public string ToJson(object obj)
+        {
+            return JsonWriter.ToJson(obj);
         }
     }
 }

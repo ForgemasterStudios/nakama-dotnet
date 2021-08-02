@@ -39,7 +39,6 @@ namespace Nakama
     using System.Runtime.Serialization;
     using System.Text;
     using System.Threading.Tasks;
-    using TinyJson;
 
     /// <summary>
     /// An exception generated for <c>HttpResponse</c> objects don't return a success status.
@@ -143,6 +142,7 @@ namespace Nakama
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class {{ $classname }} : I{{ $classname }}
     {
         {{- range $propname, $property := $definition.Properties }}
@@ -244,14 +244,16 @@ namespace Nakama
     internal class ApiClient
     {
         public readonly IHttpAdapter HttpAdapter;
+        public readonly IJsonSerializer JsonSerializer;
         public int Timeout { get; set; }
 
         private readonly Uri _baseUri;
 
-        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, int timeout = 10)
+        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, IJsonSerializer jsonSerializer, int timeout = 10)
         {
             _baseUri = baseUri;
             HttpAdapter = httpAdapter;
+            JsonSerializer = jsonSerializer;
             Timeout = timeout;
         }
 
@@ -403,14 +405,14 @@ namespace Nakama
             byte[] content = null;
             {{- range $parameter := $operation.Parameters }}
             {{- if eq $parameter.In "body" }}
-            var jsonBody = {{ $parameter.Name }}.ToJson();
+            var jsonBody = JsonSerializer.ToJson({{ $parameter.Name }});
             content = Encoding.UTF8.GetBytes(jsonBody);
             {{- end }}
             {{- end }}
 
             {{- if $operation.Responses.Ok.Schema.Ref }}
             var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return contents.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>();
+            return JsonSerializer.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>(contents);
             {{- else }}
             await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
             {{- end}}

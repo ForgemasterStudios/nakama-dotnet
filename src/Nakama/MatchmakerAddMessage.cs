@@ -20,6 +20,7 @@ namespace Nakama
     /// <summary>
     /// Add the user to the matchmaker pool with properties.
     /// </summary>
+    [DataContract]
     internal class MatchmakerAddMessage
     {
         [DataMember(Name = "max_count"), Preserve]

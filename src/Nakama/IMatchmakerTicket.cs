@@ -30,6 +30,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatchmakerMatched"/>
+    [DataContract]
     internal class MatchmakerTicket : IMatchmakerTicket
     {
         [DataMember(Name="ticket"), Preserve]

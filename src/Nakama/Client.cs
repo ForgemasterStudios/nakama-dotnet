@@ -81,32 +81,29 @@ namespace Nakama
 
         private const int DefaultTimeout = 15;
 
-        public Client(string serverKey, bool autoRefreshSession = true) : this(serverKey, HttpRequestAdapter.WithGzip(),
-            autoRefreshSession)
+        public Client(string serverKey, bool autoRefreshSession = true) : this(serverKey, HttpRequestAdapter.WithGzip(), autoRefreshSession)
         {
         }
 
         public Client(string serverKey, IHttpAdapter adapter, bool autoRefreshSession = true) : this(DefaultScheme,
             DefaultHost, DefaultPort, serverKey,
-            adapter, autoRefreshSession)
+            adapter, new TinyJson.TinyJsonSerializer(), autoRefreshSession)
         {
         }
 
-        public Client(string scheme, string host, int port, string serverKey, bool autoRefreshSession = true) : this(
-            scheme, host, port, serverKey,
-            HttpRequestAdapter.WithGzip(), autoRefreshSession)
+        public Client(string scheme, string host, int port, string serverKey, bool autoRefreshSession = true) : this(scheme, host, port, serverKey,
+            HttpRequestAdapter.WithGzip(), new TinyJson.TinyJsonSerializer(), autoRefreshSession)
         {
         }
 
-        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter,
-            bool autoRefreshSession = true)
+        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter, IJsonSerializer serializer, bool autoRefreshSession = true)
         {
             AutoRefreshSession = autoRefreshSession;
             Host = host;
             Port = port;
             Scheme = scheme;
             ServerKey = serverKey;
-            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, DefaultTimeout);
+            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, serializer, DefaultTimeout);
             Logger = NullLogger.Instance; // must set logger last.
         }
 

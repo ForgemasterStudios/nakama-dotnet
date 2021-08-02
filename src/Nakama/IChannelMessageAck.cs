@@ -80,6 +80,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IChannelMessageAck"/>
+    [DataContract]
     internal class ChannelMessageAck : IChannelMessageAck
     {
         [DataMember(Name = "channel_id"), Preserve] public string ChannelId { get; set; }

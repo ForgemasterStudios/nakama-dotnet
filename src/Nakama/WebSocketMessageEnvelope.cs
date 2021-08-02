@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// An envelope for messages received or sent on a <c>WebSocket</c>.
     /// </summary>
+    [DataContract]
     internal class WebSocketMessageEnvelope
     {
         [DataMember(Name="cid"), Preserve]

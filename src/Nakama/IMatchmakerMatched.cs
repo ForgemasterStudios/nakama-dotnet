@@ -75,6 +75,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatchmakerMatched"/>
+    [DataContract]
     internal class MatchmakerMatched : IMatchmakerMatched
     {
         [DataMember(Name = "match_id"), Preserve] public string MatchId { get; set; }
@@ -98,6 +99,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatchmakerUser"/>
+    [DataContract]
     internal class MatchmakerUser : IMatchmakerUser
     {
         public IDictionary<string, double> NumericProperties => _numericProperties ?? new Dictionary<string, double>();
