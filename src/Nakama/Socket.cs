@@ -786,7 +786,9 @@ namespace Nakama
 
         private void ReceivedMessage(ArraySegment<byte> buffer)
         {
-            var contents = _encryption.Decrypt(buffer.Array);
+            byte[] slice = new byte[buffer.Count];
+            Array.Copy(buffer.Array, buffer.Offset, slice, 0, buffer.Count);
+            var contents = _encryption.Decrypt(slice);
             Logger?.DebugFormat("Received JSON over web socket: {0}", contents);
             var envelope = _jsonSerializer.FromJson<WebSocketMessageEnvelope>(contents);
             try
@@ -901,11 +903,11 @@ namespace Nakama
         private Task<WebSocketMessageEnvelope> SendAsync(WebSocketMessageEnvelope envelope)
         {
             var json = _jsonSerializer.ToJson(envelope);
-            var body = _encryption.Encrypt(json);
-            // Logger?.DebugFormat("Sending JSON over web socket: {0}", json);
+            Logger?.DebugFormat("Sending JSON over web socket: {0}", json);
+            var buffer = _encryption.Encrypt(json);
             if (string.IsNullOrEmpty(envelope.Cid))
             {
-                _adapter.Send(new ArraySegment<byte>(body), CancellationToken.None);
+                _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
                 return null; // No response required.
             }
             var completer = new TaskCompletionSource<WebSocketMessageEnvelope>();
@@ -915,7 +917,7 @@ namespace Nakama
                 _responses[envelope.Cid] = completer;
             }
 
-            _adapter.Send(new ArraySegment<byte>(body), CancellationToken.None);
+            _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
             return completer.Task;
         }
 
