@@ -103,6 +103,7 @@ namespace Nakama
 
         private readonly ISocketAdapter _adapter;
         private readonly IJsonSerializer _jsonSerializer;
+        private readonly ISymmetricEncryption _encryption;
         private readonly Uri _baseUri;
         private readonly Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>> _responses;
 
@@ -111,7 +112,7 @@ namespace Nakama
         /// <summary>
         /// A new socket with default options.
         /// </summary>
-        public Socket() : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort, new WebSocketAdapter(), new TinyJson.TinyJsonSerializer())
+        public Socket() : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort, new WebSocketAdapter(), new TinyJson.TinyJsonSerializer(), new NoEncryption())
         {
         }
 
@@ -120,7 +121,7 @@ namespace Nakama
         /// </summary>
         /// <param name="adapter">The adapter for use with the socket.</param>
         public Socket(ISocketAdapter adapter) : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort,
-            adapter, new TinyJson.TinyJsonSerializer())
+            adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption())
         {
         }
 
@@ -132,11 +133,12 @@ namespace Nakama
         /// <param name="port">The port number of the server.</param>
         /// <param name="adapter">The adapter for use with the socket.</param>
         /// <param name="jsonSerializer">The JSON adapter to use when encoding and decoding JSON.</param>
-        public Socket(string scheme, string host, int port, ISocketAdapter adapter, IJsonSerializer jsonSerializer)
+        public Socket(string scheme, string host, int port, ISocketAdapter adapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption)
         {
             Logger = NullLogger.Instance;
             _adapter = adapter;
             _jsonSerializer = jsonSerializer;
+            _encryption = encryption;
             _baseUri = new UriBuilder(scheme, host, port).Uri;
             _responses = new Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>>();
 
@@ -765,7 +767,7 @@ namespace Nakama
         /// <returns>A new socket with connection settings from the client.</returns>
         public static ISocket From(IClient client, ISocketAdapter adapter)
         {
-            return From(client, adapter, new TinyJson.TinyJsonSerializer());
+            return From(client, adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption());
         }
 
         /// <summary>
@@ -775,20 +777,17 @@ namespace Nakama
         /// <param name="adapter">The socket adapter to use with the connection.</param>
         /// <param name="jsonSerializer">The JSON adapter to use when encoding and decoding JSON.</param>
         /// <returns>A new socket with connection settings from the client.</returns>
-        public static ISocket From(IClient client, ISocketAdapter adapter, IJsonSerializer jsonSerializer)
+        public static ISocket From(IClient client, ISocketAdapter adapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption)
         {
             var scheme = client.Scheme.ToLower().Equals("http") ? "ws" : "wss";
             // TODO improve how logger is passed into socket object.
-            return new Socket(scheme, client.Host, client.Port, adapter, jsonSerializer) {Logger = (client as Client)?.Logger};
+            return new Socket(scheme, client.Host, client.Port, adapter, jsonSerializer, encryption) {Logger = (client as Client)?.Logger};
         }
 
         private void ReceivedMessage(ArraySegment<byte> buffer)
         {
-            var contents = System.Text.Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
-
+            var contents = _encryption.Decrypt(buffer.Array);
             Logger?.DebugFormat("Received JSON over web socket: {0}", contents);
-
-            // var envelope = contents.FromJson<WebSocketMessageEnvelope>();
             var envelope = _jsonSerializer.FromJson<WebSocketMessageEnvelope>(contents);
             try
             {
@@ -901,14 +900,12 @@ namespace Nakama
 
         private Task<WebSocketMessageEnvelope> SendAsync(WebSocketMessageEnvelope envelope)
         {
-            // var json = envelope.ToJson();
             var json = _jsonSerializer.ToJson(envelope);
-            Logger?.DebugFormat("Sending JSON over web socket: {0}", json);
-
-            var buffer = System.Text.Encoding.UTF8.GetBytes(json);
+            var body = _encryption.Encrypt(json);
+            // Logger?.DebugFormat("Sending JSON over web socket: {0}", json);
             if (string.IsNullOrEmpty(envelope.Cid))
             {
-                _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
+                _adapter.Send(new ArraySegment<byte>(body), CancellationToken.None);
                 return null; // No response required.
             }
             var completer = new TaskCompletionSource<WebSocketMessageEnvelope>();
@@ -918,7 +915,7 @@ namespace Nakama
                 _responses[envelope.Cid] = completer;
             }
 
-            _adapter.Send(new ArraySegment<byte>(buffer), CancellationToken.None);
+            _adapter.Send(new ArraySegment<byte>(body), CancellationToken.None);
             return completer.Task;
         }
 

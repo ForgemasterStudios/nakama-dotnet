@@ -47,19 +47,6 @@ namespace Nakama
         /// <inheritdoc cref="IClient.Host"/>
         public string Host { get; }
 
-        /// <summary>
-        /// The logger to use with the client.
-        /// </summary>
-        public ILogger Logger
-        {
-            get => _logger;
-            set
-            {
-                _apiClient.HttpAdapter.Logger = value;
-                _logger = value;
-            }
-        }
-
         /// <inheritdoc cref="IClient.Port"/>
         public int Port { get; }
 
@@ -77,7 +64,15 @@ namespace Nakama
         }
 
         private readonly ApiClient _apiClient;
-        private ILogger _logger;
+
+        /// <inheritdoc cref="IClient.Logger"/>
+        public ILogger Logger { get; set; }
+        
+        private IJsonSerializer _jsonSerializer;
+        public IJsonSerializer JsonSerializer => _jsonSerializer;
+
+        private ISymmetricEncryption _encryption;
+        public ISymmetricEncryption Encryption => _encryption;
 
         private const int DefaultTimeout = 15;
 
@@ -87,23 +82,26 @@ namespace Nakama
 
         public Client(string serverKey, IHttpAdapter adapter, bool autoRefreshSession = true) : this(DefaultScheme,
             DefaultHost, DefaultPort, serverKey,
-            adapter, new TinyJson.TinyJsonSerializer(), autoRefreshSession)
+            adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption(), autoRefreshSession)
         {
         }
 
         public Client(string scheme, string host, int port, string serverKey, bool autoRefreshSession = true) : this(scheme, host, port, serverKey,
-            HttpRequestAdapter.WithGzip(), new TinyJson.TinyJsonSerializer(), autoRefreshSession)
+            HttpRequestAdapter.WithGzip(), new TinyJson.TinyJsonSerializer(), new NoEncryption(), autoRefreshSession)
         {
         }
 
-        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter, IJsonSerializer serializer, bool autoRefreshSession = true)
+        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter, IJsonSerializer serializer, ISymmetricEncryption encryption, bool autoRefreshSession = true)
         {
             AutoRefreshSession = autoRefreshSession;
             Host = host;
             Port = port;
             Scheme = scheme;
             ServerKey = serverKey;
-            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, serializer, DefaultTimeout);
+            _encryption = encryption;
+            _jsonSerializer = serializer;
+            adapter.Client = this;
+            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, serializer, encryption, DefaultTimeout);
             Logger = NullLogger.Instance; // must set logger last.
         }
 
@@ -623,7 +621,7 @@ namespace Nakama
                 await SessionRefreshAsync(session);
             }
 
-            return await _apiClient.ListGroupsAsync(session.AuthToken, name, cursor, limit);
+            return await _apiClient.ListGroupsAsync(session.AuthToken, name, cursor, limit, null, null, null);
         }
 
         /// <inheritdoc cref="ListLeaderboardRecordsAsync"/>

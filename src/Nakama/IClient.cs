@@ -54,6 +54,15 @@ namespace Nakama
         int Timeout { get; set; }
 
         /// <summary>
+        /// The logger to use with the client.
+        /// </summary>
+        ILogger Logger { get; set; }
+        
+        IJsonSerializer JsonSerializer { get; }
+
+        ISymmetricEncryption Encryption { get; }
+
+        /// <summary>
         /// Add one or more friends by id or username.
         /// </summary>
         /// <param name="session">The session of the user.</param>

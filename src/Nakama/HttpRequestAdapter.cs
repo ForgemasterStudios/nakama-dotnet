@@ -21,22 +21,30 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Nakama.TinyJson;
 
 namespace Nakama
 {
     /// <summary>
     /// HTTP Request adapter which uses the .NET HttpClient to send requests.
     /// </summary>
-    /// <remarks>
-    /// Accept header is always set as 'application/json'.
-    /// </remarks>
     public class HttpRequestAdapter : IHttpAdapter
     {
-        /// <inheritdoc cref="IHttpAdapter.Logger"/>
-        public ILogger Logger { get; set; }
-
+        public IClient Client { get; set; }
         private readonly HttpClient _httpClient;
+        
+        // Cache the content type on first call since its not going to change
+        private string _contentType;
+        private string ContentType 
+        {
+            get
+            {
+                if(string.IsNullOrEmpty(_contentType))
+                {
+                    _contentType = Client.Encryption.IsEnabled ? "application/octet-stream" : "application/json";
+                }
+                return _contentType;
+            }
+        }
 
         public HttpRequestAdapter(HttpClient httpClient)
         {
@@ -47,8 +55,7 @@ namespace Nakama
         }
 
         /// <inheritdoc cref="IHttpAdapter"/>
-        public async Task<string> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body,
-            int timeout)
+        public async Task<byte[]> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body, int timeout)
         {
             var request = new HttpRequestMessage
             {
@@ -56,7 +63,7 @@ namespace Nakama
                 Method = new HttpMethod(method),
                 Headers =
                 {
-                    Accept = {new MediaTypeWithQualityHeaderValue("application/json")}
+                    Accept = {new MediaTypeWithQualityHeaderValue(ContentType)}
                 }
             };
 
@@ -68,29 +75,31 @@ namespace Nakama
             if (body != null)
             {
                 request.Content = new ByteArrayContent(body);
+                request.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue(ContentType);
             }
 
             var timeoutToken = new CancellationTokenSource();
             timeoutToken.CancelAfter(TimeSpan.FromSeconds(timeout));
 
-            Logger?.InfoFormat("Send: method='{0}', uri='{1}', body='{2}'", method, uri, body);
+            Client.Logger?.InfoFormat("Send: method='{0}', uri='{1}'", method, uri);
 
             var response = await _httpClient.SendAsync(request, timeoutToken.Token);
-            var contents = await response.Content.ReadAsStringAsync();
+            var bytes = await response.Content.ReadAsByteArrayAsync();
             response.Content?.Dispose();
 
-            Logger?.InfoFormat("Received: status={0}, contents='{1}'", response.StatusCode, contents);
+            Client.Logger?.InfoFormat("Received: method='{0}', uri='{1}', status='{2}'", method, uri, response.StatusCode);
 
             if (response.IsSuccessStatusCode)
             {
-                return contents;
+                return bytes;
             }
-
-            var decoded = contents.FromJson<Dictionary<string, object>>();
+            
+            // Special case for when the result is not successs, throw an error
+            var decoded = Client.JsonSerializer.FromJson<Dictionary<string, object>>(Client.Encryption.Decrypt(bytes));
             string message = decoded.ContainsKey("message") ? decoded["message"].ToString() : string.Empty;
-            int grpcCode = decoded.ContainsKey("code") ? (int) decoded["code"] : -1;
+            int grpcCode = decoded.ContainsKey("code") ? (int)decoded["code"] : -1;
 
-            var exception = new ApiResponseException((int) response.StatusCode, message, grpcCode);
+            var exception = new ApiResponseException((int)response.StatusCode, message, grpcCode);
 
             if (decoded.ContainsKey("error"))
             {
@@ -118,7 +127,7 @@ namespace Nakama
             }
 
             var client =
-                new HttpClient(compression ? (HttpMessageHandler) new GZipHttpClientHandler(handler) : handler);
+                new HttpClient(compression ? (HttpMessageHandler)new GZipHttpClientHandler(handler) : handler);
             return new HttpRequestAdapter(client);
         }
     }

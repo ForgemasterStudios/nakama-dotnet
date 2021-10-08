@@ -23,12 +23,16 @@ namespace Nakama
     /// <summary>
     /// An adapter which implements the HTTP protocol.
     /// </summary>
+    /// <remarks>
+    /// Content-Type and Accept header must be set as 'application/json' when the encryption is not enabled,
+    /// and set as 'application/octet-stream' when encryption is enabled.
+    /// </remarks>
     public interface IHttpAdapter
     {
         /// <summary>
-        /// The logger to use with the adapter.
+        /// Gets called from Client constructor.
         /// </summary>
-        ILogger Logger { get; set; }
+        IClient Client { get; set; }
 
         /// <summary>
         /// Send a HTTP request.
@@ -39,6 +43,6 @@ namespace Nakama
         /// <param name="body">Request content body to set.</param>
         /// <param name="timeoutSec">Request timeout.</param>
         /// <returns>A task which resolves to the contents of the response.</returns>
-        Task<string> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body, int timeoutSec = 3);
+        Task<byte[]> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body, int timeoutSec = 3);
     }
 }

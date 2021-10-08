@@ -245,15 +245,17 @@ namespace Nakama
     {
         public readonly IHttpAdapter HttpAdapter;
         public readonly IJsonSerializer JsonSerializer;
+        public readonly ISymmetricEncryption Encryption;
         public int Timeout { get; set; }
 
         private readonly Uri _baseUri;
 
-        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, IJsonSerializer jsonSerializer, int timeout = 10)
+        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption, int timeout = 10)
         {
             _baseUri = baseUri;
             HttpAdapter = httpAdapter;
             JsonSerializer = jsonSerializer;
+            Encryption = encryption;
             Timeout = timeout;
         }
 
@@ -405,14 +407,13 @@ namespace Nakama
             byte[] content = null;
             {{- range $parameter := $operation.Parameters }}
             {{- if eq $parameter.In "body" }}
-            var jsonBody = JsonSerializer.ToJson({{ $parameter.Name }});
-            content = Encoding.UTF8.GetBytes(jsonBody);
+            content = Encryption.Encrypt(JsonSerializer.ToJson({{ $parameter.Name }}));
             {{- end }}
             {{- end }}
 
             {{- if $operation.Responses.Ok.Schema.Ref }}
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
-            return JsonSerializer.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>(contents);
+            var response = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
+            return JsonSerializer.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>(Encryption.Decrypt(response));
             {{- else }}
             await HttpAdapter.SendAsync(method, uri, headers, content, Timeout);
             {{- end}}

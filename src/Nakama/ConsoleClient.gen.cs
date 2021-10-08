@@ -6,7 +6,6 @@ namespace Nakama.Console
     using System.Runtime.Serialization;
     using System.Text;
     using System.Threading.Tasks;
-    using TinyJson;
 
     /// <summary>
     /// An exception generated for <c>HttpResponse</c> objects don't return a success status.
@@ -57,15 +56,16 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ConfigWarning : IConfigWarning
     {
 
         /// <inheritdoc />
-        [DataMember(Name="field")]
+        [DataMember(Name="field"), Preserve]
         public string Field { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="message")]
+        [DataMember(Name="message"), Preserve]
         public string Message { get; set; }
 
         public override string ToString()
@@ -78,119 +78,40 @@ namespace Nakama.Console
     }
 
     /// <summary>
-    /// The status of a Nakama node.
+    /// Module information
     /// </summary>
-    public interface IStatusListStatus
+    public interface IRuntimeInfoModuleInfo
     {
 
         /// <summary>
-        /// Average input bandwidth usage.
+        /// Module last modified date
         /// </summary>
-        double AvgInputKbs { get; }
+        string ModTime { get; }
 
         /// <summary>
-        /// Average response latency in milliseconds.
+        /// Module path
         /// </summary>
-        double AvgLatencyMs { get; }
-
-        /// <summary>
-        /// Average output bandwidth usage.
-        /// </summary>
-        double AvgOutputKbs { get; }
-
-        /// <summary>
-        /// Average number of requests per second.
-        /// </summary>
-        double AvgRateSec { get; }
-
-        /// <summary>
-        /// Current number of running goroutines.
-        /// </summary>
-        int GoroutineCount { get; }
-
-        /// <summary>
-        /// Health score.
-        /// </summary>
-        int Health { get; }
-
-        /// <summary>
-        /// Current number of active authoritative matches.
-        /// </summary>
-        int MatchCount { get; }
-
-        /// <summary>
-        /// Node name.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// Currently registered live presences.
-        /// </summary>
-        int PresenceCount { get; }
-
-        /// <summary>
-        /// Currently connected sessions.
-        /// </summary>
-        int SessionCount { get; }
+        string Path { get; }
     }
 
     /// <inheritdoc />
-    internal class StatusListStatus : IStatusListStatus
+    [DataContract]
+    internal class RuntimeInfoModuleInfo : IRuntimeInfoModuleInfo
     {
 
         /// <inheritdoc />
-        [DataMember(Name="avg_input_kbs")]
-        public double AvgInputKbs { get; set; }
+        [DataMember(Name="mod_time"), Preserve]
+        public string ModTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="avg_latency_ms")]
-        public double AvgLatencyMs { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="avg_output_kbs")]
-        public double AvgOutputKbs { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="avg_rate_sec")]
-        public double AvgRateSec { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="goroutine_count")]
-        public int GoroutineCount { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="health")]
-        public int Health { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="match_count")]
-        public int MatchCount { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="name")]
-        public string Name { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="presence_count")]
-        public int PresenceCount { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="session_count")]
-        public int SessionCount { get; set; }
+        [DataMember(Name="path"), Preserve]
+        public string Path { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "AvgInputKbs: ", AvgInputKbs, ", ");
-            output = string.Concat(output, "AvgLatencyMs: ", AvgLatencyMs, ", ");
-            output = string.Concat(output, "AvgOutputKbs: ", AvgOutputKbs, ", ");
-            output = string.Concat(output, "AvgRateSec: ", AvgRateSec, ", ");
-            output = string.Concat(output, "GoroutineCount: ", GoroutineCount, ", ");
-            output = string.Concat(output, "Health: ", Health, ", ");
-            output = string.Concat(output, "MatchCount: ", MatchCount, ", ");
-            output = string.Concat(output, "Name: ", Name, ", ");
-            output = string.Concat(output, "PresenceCount: ", PresenceCount, ", ");
-            output = string.Concat(output, "SessionCount: ", SessionCount, ", ");
+            output = string.Concat(output, "ModTime: ", ModTime, ", ");
+            output = string.Concat(output, "Path: ", Path, ", ");
             return output;
         }
     }
@@ -213,16 +134,17 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class UserGroupListUserGroup : IUserGroupListUserGroup
     {
 
         /// <inheritdoc />
         public IApiGroup Group => _group;
-        [DataMember(Name="group")]
+        [DataMember(Name="group"), Preserve]
         public ApiGroup _group { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="state")]
+        [DataMember(Name="state"), Preserve]
         public int State { get; set; }
 
         public override string ToString()
@@ -232,6 +154,44 @@ namespace Nakama.Console
             output = string.Concat(output, "State: ", State, ", ");
             return output;
         }
+    }
+
+    /// <summary>
+    /// Environment where the purchase took place
+    /// </summary>
+    public enum ValidatedPurchaseEnvironment
+    {
+        /// <summary>
+        /// - UNKNOWN: Unknown environment.
+        /// </summary>
+        UNKNOWN = 0,
+        /// <summary>
+        ///  - SANDBOX: Sandbox/test environment.
+        /// </summary>
+        SANDBOX = 1,
+        /// <summary>
+        ///  - PRODUCTION: Production environment.
+        /// </summary>
+        PRODUCTION = 2,
+    }
+
+    /// <summary>
+    /// Validation Provider
+    /// </summary>
+    public enum ValidatedPurchaseStore
+    {
+        /// <summary>
+        /// - APPLE_APP_STORE: Apple App Store
+        /// </summary>
+        APPLE_APP_STORE = 0,
+        /// <summary>
+        ///  - GOOGLE_PLAY_STORE: Google Play Store
+        /// </summary>
+        GOOGLE_PLAY_STORE = 1,
+        /// <summary>
+        ///  - HUAWEI_APP_GALLERY: Huawei App Gallery
+        /// </summary>
+        HUAWEI_APP_GALLERY = 2,
     }
 
     /// <summary>
@@ -252,16 +212,17 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiAccountDevice : IApiAccountDevice
     {
 
         /// <inheritdoc />
-        [DataMember(Name="id")]
+        [DataMember(Name="id"), Preserve]
         public string Id { get; set; }
 
         /// <inheritdoc />
         public IDictionary<string, string> Vars => _vars ?? new Dictionary<string, string>();
-        [DataMember(Name="vars")]
+        [DataMember(Name="vars"), Preserve]
         public Dictionary<string, string> _vars { get; set; }
 
         public override string ToString()
@@ -352,59 +313,60 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiChannelMessage : IApiChannelMessage
     {
 
         /// <inheritdoc />
-        [DataMember(Name="channel_id")]
+        [DataMember(Name="channel_id"), Preserve]
         public string ChannelId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="code")]
+        [DataMember(Name="code"), Preserve]
         public int Code { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="content")]
+        [DataMember(Name="content"), Preserve]
         public string Content { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="create_time")]
+        [DataMember(Name="create_time"), Preserve]
         public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="group_id")]
+        [DataMember(Name="group_id"), Preserve]
         public string GroupId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="message_id")]
+        [DataMember(Name="message_id"), Preserve]
         public string MessageId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="persistent")]
+        [DataMember(Name="persistent"), Preserve]
         public bool Persistent { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="room_name")]
+        [DataMember(Name="room_name"), Preserve]
         public string RoomName { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="sender_id")]
+        [DataMember(Name="sender_id"), Preserve]
         public string SenderId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="update_time")]
+        [DataMember(Name="update_time"), Preserve]
         public string UpdateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="user_id_one")]
+        [DataMember(Name="user_id_one"), Preserve]
         public string UserIdOne { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="user_id_two")]
+        [DataMember(Name="user_id_two"), Preserve]
         public string UserIdTwo { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="username")]
+        [DataMember(Name="username"), Preserve]
         public string Username { get; set; }
 
         public override string ToString()
@@ -439,28 +401,39 @@ namespace Nakama.Console
         int State { get; }
 
         /// <summary>
+        /// Time of the latest relationship update.
+        /// </summary>
+        string UpdateTime { get; }
+
+        /// <summary>
         /// The user object.
         /// </summary>
-        IApiUser User { get; }
+        INakamaapiUser User { get; }
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiFriend : IApiFriend
     {
 
         /// <inheritdoc />
-        [DataMember(Name="state")]
+        [DataMember(Name="state"), Preserve]
         public int State { get; set; }
 
         /// <inheritdoc />
-        public IApiUser User => _user;
-        [DataMember(Name="user")]
-        public ApiUser _user { get; set; }
+        [DataMember(Name="update_time"), Preserve]
+        public string UpdateTime { get; set; }
+
+        /// <inheritdoc />
+        public INakamaapiUser User => _user;
+        [DataMember(Name="user"), Preserve]
+        public NakamaapiUser _user { get; set; }
 
         public override string ToString()
         {
             var output = "";
             output = string.Concat(output, "State: ", State, ", ");
+            output = string.Concat(output, "UpdateTime: ", UpdateTime, ", ");
             output = string.Concat(output, "User: ", User, ", ");
             return output;
         }
@@ -484,16 +457,17 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiFriendList : IApiFriendList
     {
 
         /// <inheritdoc />
-        [DataMember(Name="cursor")]
+        [DataMember(Name="cursor"), Preserve]
         public string Cursor { get; set; }
 
         /// <inheritdoc />
         public IEnumerable<IApiFriend> Friends => _friends ?? new List<ApiFriend>(0);
-        [DataMember(Name="friends")]
+        [DataMember(Name="friends"), Preserve]
         public List<ApiFriend> _friends { get; set; }
 
         public override string ToString()
@@ -573,55 +547,56 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiGroup : IApiGroup
     {
 
         /// <inheritdoc />
-        [DataMember(Name="avatar_url")]
+        [DataMember(Name="avatar_url"), Preserve]
         public string AvatarUrl { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="create_time")]
+        [DataMember(Name="create_time"), Preserve]
         public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="creator_id")]
+        [DataMember(Name="creator_id"), Preserve]
         public string CreatorId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="description")]
+        [DataMember(Name="description"), Preserve]
         public string Description { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="edge_count")]
+        [DataMember(Name="edge_count"), Preserve]
         public int EdgeCount { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="id")]
+        [DataMember(Name="id"), Preserve]
         public string Id { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="lang_tag")]
+        [DataMember(Name="lang_tag"), Preserve]
         public string LangTag { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="max_count")]
+        [DataMember(Name="max_count"), Preserve]
         public int MaxCount { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="metadata")]
+        [DataMember(Name="metadata"), Preserve]
         public string Metadata { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="name")]
+        [DataMember(Name="name"), Preserve]
         public string Name { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="open")]
+        [DataMember(Name="open"), Preserve]
         public bool Open { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="update_time")]
+        [DataMember(Name="update_time"), Preserve]
         public string UpdateTime { get; set; }
 
         public override string ToString()
@@ -711,55 +686,56 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiLeaderboardRecord : IApiLeaderboardRecord
     {
 
         /// <inheritdoc />
-        [DataMember(Name="create_time")]
+        [DataMember(Name="create_time"), Preserve]
         public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="expiry_time")]
+        [DataMember(Name="expiry_time"), Preserve]
         public string ExpiryTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="leaderboard_id")]
+        [DataMember(Name="leaderboard_id"), Preserve]
         public string LeaderboardId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="max_num_score")]
+        [DataMember(Name="max_num_score"), Preserve]
         public int MaxNumScore { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="metadata")]
+        [DataMember(Name="metadata"), Preserve]
         public string Metadata { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="num_score")]
+        [DataMember(Name="num_score"), Preserve]
         public int NumScore { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="owner_id")]
+        [DataMember(Name="owner_id"), Preserve]
         public string OwnerId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="rank")]
+        [DataMember(Name="rank"), Preserve]
         public string Rank { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="score")]
+        [DataMember(Name="score"), Preserve]
         public string Score { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="subscore")]
+        [DataMember(Name="subscore"), Preserve]
         public string Subscore { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="update_time")]
+        [DataMember(Name="update_time"), Preserve]
         public string UpdateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="username")]
+        [DataMember(Name="username"), Preserve]
         public string Username { get; set; }
 
         public override string ToString()
@@ -777,6 +753,173 @@ namespace Nakama.Console
             output = string.Concat(output, "Subscore: ", Subscore, ", ");
             output = string.Concat(output, "UpdateTime: ", UpdateTime, ", ");
             output = string.Concat(output, "Username: ", Username, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// A set of leaderboard records, may be part of a leaderboard records page or a batch of individual records.
+    /// </summary>
+    public interface IApiLeaderboardRecordList
+    {
+
+        /// <summary>
+        /// The cursor to send when retrieving the next page, if any.
+        /// </summary>
+        string NextCursor { get; }
+
+        /// <summary>
+        /// A batched set of leaderboard records belonging to specified owners.
+        /// </summary>
+        IEnumerable<IApiLeaderboardRecord> OwnerRecords { get; }
+
+        /// <summary>
+        /// The cursor to send when retrieving the previous page, if any.
+        /// </summary>
+        string PrevCursor { get; }
+
+        /// <summary>
+        /// A list of leaderboard records.
+        /// </summary>
+        IEnumerable<IApiLeaderboardRecord> Records { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ApiLeaderboardRecordList : IApiLeaderboardRecordList
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="next_cursor"), Preserve]
+        public string NextCursor { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiLeaderboardRecord> OwnerRecords => _ownerRecords ?? new List<ApiLeaderboardRecord>(0);
+        [DataMember(Name="owner_records"), Preserve]
+        public List<ApiLeaderboardRecord> _ownerRecords { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="prev_cursor"), Preserve]
+        public string PrevCursor { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiLeaderboardRecord> Records => _records ?? new List<ApiLeaderboardRecord>(0);
+        [DataMember(Name="records"), Preserve]
+        public List<ApiLeaderboardRecord> _records { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "NextCursor: ", NextCursor, ", ");
+            output = string.Concat(output, "OwnerRecords: [", string.Join(", ", OwnerRecords), "], ");
+            output = string.Concat(output, "PrevCursor: ", PrevCursor, ", ");
+            output = string.Concat(output, "Records: [", string.Join(", ", Records), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// Represents a realtime match.
+    /// </summary>
+    public interface INakamaapiMatch
+    {
+        /// <summary>
+        /// True if it's an server-managed authoritative match, false otherwise.
+        /// </summary>
+        bool Authoritative { get; }
+
+        /// <summary>
+        /// Handler name
+        /// </summary>
+        string HandlerName { get; }
+
+        /// <summary>
+        /// Match label, if any.
+        /// </summary>
+        string Label { get; }
+
+        /// <summary>
+        /// The ID of the match, can be used to join.
+        /// </summary>
+        string MatchId { get; }
+
+        /// <summary>
+        /// Current number of users in the match.
+        /// </summary>
+        int Size { get; }
+
+        /// <summary>
+        /// Tick Rate
+        /// </summary>
+        int TickRate { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class NakamaapiMatch : INakamaapiMatch
+    {
+        /// <inheritdoc />
+        [DataMember(Name="authoritative"), Preserve]
+        public bool Authoritative { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="handler_name"), Preserve]
+        public string HandlerName { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="label"), Preserve]
+        public string Label { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="match_id"), Preserve]
+        public string MatchId { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="size"), Preserve]
+        public int Size { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="tick_rate"), Preserve]
+        public int TickRate { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Authoritative: ", Authoritative, ", ");
+            output = string.Concat(output, "HandlerName: ", HandlerName, ", ");
+            output = string.Concat(output, "Label: ", Label, ", ");
+            output = string.Concat(output, "MatchId: ", MatchId, ", ");
+            output = string.Concat(output, "Size: ", Size, ", ");
+            output = string.Concat(output, "TickRate: ", TickRate, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// A list of realtime matches.
+    /// </summary>
+    public interface IApiMatchList
+    {
+        /// <summary>
+        /// A number of matches corresponding to a list operation.
+        /// </summary>
+        IEnumerable<INakamaapiMatch> Matches { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ApiMatchList : IApiMatchList
+    {
+
+        /// <inheritdoc />
+        public IEnumerable<INakamaapiMatch> Matches => _matches ?? new List<NakamaapiMatch>(0);
+        [DataMember(Name="matches"), Preserve]
+        public List<NakamaapiMatch> _matches { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Matches: [", string.Join(", ", Matches), "], ");
             return output;
         }
     }
@@ -824,35 +967,36 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiNotification : IApiNotification
     {
 
         /// <inheritdoc />
-        [DataMember(Name="code")]
+        [DataMember(Name="code"), Preserve]
         public int Code { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="content")]
+        [DataMember(Name="content"), Preserve]
         public string Content { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="create_time")]
+        [DataMember(Name="create_time"), Preserve]
         public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="id")]
+        [DataMember(Name="id"), Preserve]
         public string Id { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="persistent")]
+        [DataMember(Name="persistent"), Preserve]
         public bool Persistent { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="sender_id")]
+        [DataMember(Name="sender_id"), Preserve]
         public string SenderId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="subject")]
+        [DataMember(Name="subject"), Preserve]
         public string Subject { get; set; }
 
         public override string ToString()
@@ -865,6 +1009,46 @@ namespace Nakama.Console
             output = string.Concat(output, "Persistent: ", Persistent, ", ");
             output = string.Concat(output, "SenderId: ", SenderId, ", ");
             output = string.Concat(output, "Subject: ", Subject, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// A list of validated purchases stored by Nakama.
+    /// </summary>
+    public interface IApiPurchaseList
+    {
+
+        /// <summary>
+        /// The cursor to send when retrieving the next page, if any.
+        /// </summary>
+        string Cursor { get; }
+
+        /// <summary>
+        /// Stored validated purchases.
+        /// </summary>
+        IEnumerable<IApiValidatedPurchase> ValidatedPurchases { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ApiPurchaseList : IApiPurchaseList
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="cursor"), Preserve]
+        public string Cursor { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiValidatedPurchase> ValidatedPurchases => _validatedPurchases ?? new List<ApiValidatedPurchase>(0);
+        [DataMember(Name="validated_purchases"), Preserve]
+        public List<ApiValidatedPurchase> _validatedPurchases { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Cursor: ", Cursor, ", ");
+            output = string.Concat(output, "ValidatedPurchases: [", string.Join(", ", ValidatedPurchases), "], ");
             return output;
         }
     }
@@ -922,43 +1106,44 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObject : IApiStorageObject
     {
 
         /// <inheritdoc />
-        [DataMember(Name="collection")]
+        [DataMember(Name="collection"), Preserve]
         public string Collection { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="create_time")]
+        [DataMember(Name="create_time"), Preserve]
         public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="key")]
+        [DataMember(Name="key"), Preserve]
         public string Key { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="permission_read")]
+        [DataMember(Name="permission_read"), Preserve]
         public int PermissionRead { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="permission_write")]
+        [DataMember(Name="permission_write"), Preserve]
         public int PermissionWrite { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="update_time")]
+        [DataMember(Name="update_time"), Preserve]
         public string UpdateTime { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="user_id")]
+        [DataMember(Name="user_id"), Preserve]
         public string UserId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="value")]
+        [DataMember(Name="value"), Preserve]
         public string Value { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="version")]
+        [DataMember(Name="version"), Preserve]
         public string Version { get; set; }
 
         public override string ToString()
@@ -1005,23 +1190,24 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiStorageObjectAck : IApiStorageObjectAck
     {
 
         /// <inheritdoc />
-        [DataMember(Name="collection")]
+        [DataMember(Name="collection"), Preserve]
         public string Collection { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="key")]
+        [DataMember(Name="key"), Preserve]
         public string Key { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="user_id")]
+        [DataMember(Name="user_id"), Preserve]
         public string UserId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="version")]
+        [DataMember(Name="version"), Preserve]
         public string Version { get; set; }
 
         public override string ToString()
@@ -1031,194 +1217,6 @@ namespace Nakama.Console
             output = string.Concat(output, "Key: ", Key, ", ");
             output = string.Concat(output, "UserId: ", UserId, ", ");
             output = string.Concat(output, "Version: ", Version, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// A user in the server.
-    /// </summary>
-    public interface IApiUser
-    {
-
-        /// <summary>
-        /// A URL for an avatar image.
-        /// </summary>
-        string AvatarUrl { get; }
-
-        /// <summary>
-        /// The UNIX time when the user was created.
-        /// </summary>
-        string CreateTime { get; }
-
-        /// <summary>
-        /// The display name of the user.
-        /// </summary>
-        string DisplayName { get; }
-
-        /// <summary>
-        /// Number of related edges to this user.
-        /// </summary>
-        int EdgeCount { get; }
-
-        /// <summary>
-        /// The Facebook id in the user's account.
-        /// </summary>
-        string FacebookId { get; }
-
-        /// <summary>
-        /// The Facebook Instant Game id in the user's account.
-        /// </summary>
-        string FacebookInstantGameId { get; }
-
-        /// <summary>
-        /// The Apple Game Center in of the user's account.
-        /// </summary>
-        string GamecenterId { get; }
-
-        /// <summary>
-        /// The Google id in the user's account.
-        /// </summary>
-        string GoogleId { get; }
-
-        /// <summary>
-        /// The id of the user's account.
-        /// </summary>
-        string Id { get; }
-
-        /// <summary>
-        /// The language expected to be a tag which follows the BCP-47 spec.
-        /// </summary>
-        string LangTag { get; }
-
-        /// <summary>
-        /// The location set by the user.
-        /// </summary>
-        string Location { get; }
-
-        /// <summary>
-        /// Additional information stored as a JSON object.
-        /// </summary>
-        string Metadata { get; }
-
-        /// <summary>
-        /// Indicates whether the user is currently online.
-        /// </summary>
-        bool Online { get; }
-
-        /// <summary>
-        /// The Steam id in the user's account.
-        /// </summary>
-        string SteamId { get; }
-
-        /// <summary>
-        /// The timezone set by the user.
-        /// </summary>
-        string Timezone { get; }
-
-        /// <summary>
-        /// The UNIX time when the user was last updated.
-        /// </summary>
-        string UpdateTime { get; }
-
-        /// <summary>
-        /// The username of the user's account.
-        /// </summary>
-        string Username { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ApiUser : IApiUser
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="avatar_url")]
-        public string AvatarUrl { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="create_time")]
-        public string CreateTime { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="display_name")]
-        public string DisplayName { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="edge_count")]
-        public int EdgeCount { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="facebook_id")]
-        public string FacebookId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="facebook_instant_game_id")]
-        public string FacebookInstantGameId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="gamecenter_id")]
-        public string GamecenterId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="google_id")]
-        public string GoogleId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="id")]
-        public string Id { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="lang_tag")]
-        public string LangTag { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="location")]
-        public string Location { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="metadata")]
-        public string Metadata { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="online")]
-        public bool Online { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="steam_id")]
-        public string SteamId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="timezone")]
-        public string Timezone { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="update_time")]
-        public string UpdateTime { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="username")]
-        public string Username { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "AvatarUrl: ", AvatarUrl, ", ");
-            output = string.Concat(output, "CreateTime: ", CreateTime, ", ");
-            output = string.Concat(output, "DisplayName: ", DisplayName, ", ");
-            output = string.Concat(output, "EdgeCount: ", EdgeCount, ", ");
-            output = string.Concat(output, "FacebookId: ", FacebookId, ", ");
-            output = string.Concat(output, "FacebookInstantGameId: ", FacebookInstantGameId, ", ");
-            output = string.Concat(output, "GamecenterId: ", GamecenterId, ", ");
-            output = string.Concat(output, "GoogleId: ", GoogleId, ", ");
-            output = string.Concat(output, "Id: ", Id, ", ");
-            output = string.Concat(output, "LangTag: ", LangTag, ", ");
-            output = string.Concat(output, "Location: ", Location, ", ");
-            output = string.Concat(output, "Metadata: ", Metadata, ", ");
-            output = string.Concat(output, "Online: ", Online, ", ");
-            output = string.Concat(output, "SteamId: ", SteamId, ", ");
-            output = string.Concat(output, "Timezone: ", Timezone, ", ");
-            output = string.Concat(output, "UpdateTime: ", UpdateTime, ", ");
-            output = string.Concat(output, "Username: ", Username, ", ");
             return output;
         }
     }
@@ -1241,16 +1239,17 @@ namespace Nakama.Console
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class ApiUserGroupList : IApiUserGroupList
     {
 
         /// <inheritdoc />
-        [DataMember(Name="cursor")]
+        [DataMember(Name="cursor"), Preserve]
         public string Cursor { get; set; }
 
         /// <inheritdoc />
         public IEnumerable<IUserGroupListUserGroup> UserGroups => _userGroups ?? new List<UserGroupListUserGroup>(0);
-        [DataMember(Name="user_groups")]
+        [DataMember(Name="user_groups"), Preserve]
         public List<UserGroupListUserGroup> _userGroups { get; set; }
 
         public override string ToString()
@@ -1263,367 +1262,182 @@ namespace Nakama.Console
     }
 
     /// <summary>
-    /// An export of all information stored for a user account.
+    /// Validated Purchase stored by Nakama.
     /// </summary>
-    public interface IConsoleAccountExport
+    public interface IApiValidatedPurchase
     {
 
         /// <summary>
-        /// The user's account details.
+        /// UNIX Timestamp when the receipt validation was stored in DB.
         /// </summary>
-        INakamaapiAccount Account { get; }
+        string CreateTime { get; }
 
         /// <summary>
-        /// The user's friends.
+        /// Whether the purchase was done in production or sandbox environment.
         /// </summary>
-        IEnumerable<IApiFriend> Friends { get; }
+        ValidatedPurchaseEnvironment Environment { get; }
 
         /// <summary>
-        /// The user's groups.
+        /// Purchase Product ID.
         /// </summary>
-        IEnumerable<IApiGroup> Groups { get; }
+        string ProductId { get; }
 
         /// <summary>
-        /// The user's leaderboard records.
+        /// Raw provider validation response.
         /// </summary>
-        IEnumerable<IApiLeaderboardRecord> LeaderboardRecords { get; }
+        string ProviderResponse { get; }
 
         /// <summary>
-        /// The user's chat messages.
+        /// UNIX Timestamp when the purchase was done.
         /// </summary>
-        IEnumerable<IApiChannelMessage> Messages { get; }
+        string PurchaseTime { get; }
 
         /// <summary>
-        /// The user's notifications.
+        /// Store identifier
         /// </summary>
-        IEnumerable<IApiNotification> Notifications { get; }
+        ValidatedPurchaseStore Store { get; }
 
         /// <summary>
-        /// The user's storage.
+        /// Purchase Transaction ID.
         /// </summary>
-        IEnumerable<IApiStorageObject> Objects { get; }
+        string TransactionId { get; }
 
         /// <summary>
-        /// The user's wallet ledger items.
+        /// UNIX Timestamp when the receipt validation was updated in DB.
         /// </summary>
-        IEnumerable<IConsoleWalletLedger> WalletLedgers { get; }
+        string UpdateTime { get; }
     }
 
     /// <inheritdoc />
-    internal class ConsoleAccountExport : IConsoleAccountExport
+    [DataContract]
+    internal class ApiValidatedPurchase : IApiValidatedPurchase
     {
 
         /// <inheritdoc />
-        public INakamaapiAccount Account => _account;
-        [DataMember(Name="account")]
-        public NakamaapiAccount _account { get; set; }
+        [DataMember(Name="create_time"), Preserve]
+        public string CreateTime { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiFriend> Friends => _friends ?? new List<ApiFriend>(0);
-        [DataMember(Name="friends")]
-        public List<ApiFriend> _friends { get; set; }
+        public ValidatedPurchaseEnvironment Environment => _environment;
+        [DataMember(Name="environment"), Preserve]
+        public ValidatedPurchaseEnvironment _environment { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiGroup> Groups => _groups ?? new List<ApiGroup>(0);
-        [DataMember(Name="groups")]
-        public List<ApiGroup> _groups { get; set; }
+        [DataMember(Name="product_id"), Preserve]
+        public string ProductId { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiLeaderboardRecord> LeaderboardRecords => _leaderboardRecords ?? new List<ApiLeaderboardRecord>(0);
-        [DataMember(Name="leaderboard_records")]
-        public List<ApiLeaderboardRecord> _leaderboardRecords { get; set; }
+        [DataMember(Name="provider_response"), Preserve]
+        public string ProviderResponse { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiChannelMessage> Messages => _messages ?? new List<ApiChannelMessage>(0);
-        [DataMember(Name="messages")]
-        public List<ApiChannelMessage> _messages { get; set; }
+        [DataMember(Name="purchase_time"), Preserve]
+        public string PurchaseTime { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiNotification> Notifications => _notifications ?? new List<ApiNotification>(0);
-        [DataMember(Name="notifications")]
-        public List<ApiNotification> _notifications { get; set; }
+        public ValidatedPurchaseStore Store => _store;
+        [DataMember(Name="store"), Preserve]
+        public ValidatedPurchaseStore _store { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IApiStorageObject> Objects => _objects ?? new List<ApiStorageObject>(0);
-        [DataMember(Name="objects")]
-        public List<ApiStorageObject> _objects { get; set; }
+        [DataMember(Name="transaction_id"), Preserve]
+        public string TransactionId { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<IConsoleWalletLedger> WalletLedgers => _walletLedgers ?? new List<ConsoleWalletLedger>(0);
-        [DataMember(Name="wallet_ledgers")]
-        public List<ConsoleWalletLedger> _walletLedgers { get; set; }
+        [DataMember(Name="update_time"), Preserve]
+        public string UpdateTime { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "Account: ", Account, ", ");
-            output = string.Concat(output, "Friends: [", string.Join(", ", Friends), "], ");
-            output = string.Concat(output, "Groups: [", string.Join(", ", Groups), "], ");
-            output = string.Concat(output, "LeaderboardRecords: [", string.Join(", ", LeaderboardRecords), "], ");
-            output = string.Concat(output, "Messages: [", string.Join(", ", Messages), "], ");
-            output = string.Concat(output, "Notifications: [", string.Join(", ", Notifications), "], ");
-            output = string.Concat(output, "Objects: [", string.Join(", ", Objects), "], ");
-            output = string.Concat(output, "WalletLedgers: [", string.Join(", ", WalletLedgers), "], ");
+            output = string.Concat(output, "CreateTime: ", CreateTime, ", ");
+            output = string.Concat(output, "Environment: ", Environment, ", ");
+            output = string.Concat(output, "ProductId: ", ProductId, ", ");
+            output = string.Concat(output, "ProviderResponse: ", ProviderResponse, ", ");
+            output = string.Concat(output, "PurchaseTime: ", PurchaseTime, ", ");
+            output = string.Concat(output, "Store: ", Store, ", ");
+            output = string.Concat(output, "TransactionId: ", TransactionId, ", ");
+            output = string.Concat(output, "UpdateTime: ", UpdateTime, ", ");
             return output;
         }
     }
-
+    
     /// <summary>
-    /// Authenticate a console user with username and password.
+    /// A user with additional account details. Always the current user.
     /// </summary>
-    public interface IConsoleAuthenticateRequest
+    public interface INakamaapiAccount
     {
 
         /// <summary>
-        /// The password of the user.
+        /// The custom id in the user's account.
         /// </summary>
-        string Password { get; }
+        string CustomId { get; }
 
         /// <summary>
-        /// The username of the user.
+        /// The devices which belong to the user's account.
         /// </summary>
-        string Username { get; }
+        IEnumerable<IApiAccountDevice> Devices { get; }
+
+        /// <summary>
+        /// The email address of the user.
+        /// </summary>
+        string Email { get; }
+
+        /// <summary>
+        /// The user object.
+        /// </summary>
+        IApiUser User { get; }
+
+        /// <summary>
+        /// The UNIX time when the user's email was verified.
+        /// </summary>
+        string VerifyTime { get; }
+
+        /// <summary>
+        /// The user's wallet data.
+        /// </summary>
+        string Wallet { get; }
     }
 
     /// <inheritdoc />
-    internal class ConsoleAuthenticateRequest : IConsoleAuthenticateRequest
+    internal class NakamaapiAccount : INakamaapiAccount
     {
 
         /// <inheritdoc />
-        [DataMember(Name="password")]
-        public string Password { get; set; }
+        [DataMember(Name="custom_id")]
+        public string CustomId { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="username")]
-        public string Username { get; set; }
+        public IEnumerable<IApiAccountDevice> Devices => _devices ?? new List<ApiAccountDevice>(0);
+        [DataMember(Name="devices")]
+        public List<ApiAccountDevice> _devices { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="email")]
+        public string Email { get; set; }
+
+        /// <inheritdoc />
+        public IApiUser User => _user;
+        [DataMember(Name="user")]
+        public ApiUser _user { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="verify_time")]
+        public string VerifyTime { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="wallet")]
+        public string Wallet { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "Password: ", Password, ", ");
-            output = string.Concat(output, "Username: ", Username, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// The current server configuration and any associated warnings.
-    /// </summary>
-    public interface IConsoleConfig
-    {
-
-        /// <summary>
-        /// JSON-encoded active server configuration.
-        /// </summary>
-        string Config { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        string ServerVersion { get; }
-
-        /// <summary>
-        /// Any warnings about the current config.
-        /// </summary>
-        IEnumerable<IConfigWarning> Warnings { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleConfig : IConsoleConfig
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="config")]
-        public string Config { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="server_version")]
-        public string ServerVersion { get; set; }
-
-        /// <inheritdoc />
-        public IEnumerable<IConfigWarning> Warnings => _warnings ?? new List<ConfigWarning>(0);
-        [DataMember(Name="warnings")]
-        public List<ConfigWarning> _warnings { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Config: ", Config, ", ");
-            output = string.Concat(output, "ServerVersion: ", ServerVersion, ", ");
-            output = string.Concat(output, "Warnings: [", string.Join(", ", Warnings), "], ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// A console user session.
-    /// </summary>
-    public interface IConsoleConsoleSession
-    {
-
-        /// <summary>
-        /// A session token (JWT) for the console user.
-        /// </summary>
-        string Token { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleConsoleSession : IConsoleConsoleSession
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="token")]
-        public string Token { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Token: ", Token, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// List of nodes and their stats.
-    /// </summary>
-    public interface IConsoleStatusList
-    {
-
-        /// <summary>
-        /// List of nodes and their stats.
-        /// </summary>
-        IEnumerable<IStatusListStatus> Nodes { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleStatusList : IConsoleStatusList
-    {
-
-        /// <inheritdoc />
-        public IEnumerable<IStatusListStatus> Nodes => _nodes ?? new List<StatusListStatus>(0);
-        [DataMember(Name="nodes")]
-        public List<StatusListStatus> _nodes { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Nodes: [", string.Join(", ", Nodes), "], ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// List of storage objects.
-    /// </summary>
-    public interface IConsoleStorageList
-    {
-
-        /// <summary>
-        /// List of storage objects matching list/filter operation.
-        /// </summary>
-        IEnumerable<IApiStorageObject> Objects { get; }
-
-        /// <summary>
-        /// Approximate total number of storage objects.
-        /// </summary>
-        int TotalCount { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleStorageList : IConsoleStorageList
-    {
-
-        /// <inheritdoc />
-        public IEnumerable<IApiStorageObject> Objects => _objects ?? new List<ApiStorageObject>(0);
-        [DataMember(Name="objects")]
-        public List<ApiStorageObject> _objects { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="total_count")]
-        public int TotalCount { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Objects: [", string.Join(", ", Objects), "], ");
-            output = string.Concat(output, "TotalCount: ", TotalCount, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// Unlink a particular device ID from a user's account.
-    /// </summary>
-    public interface IConsoleUnlinkDeviceRequest
-    {
-
-        /// <summary>
-        /// Device ID to unlink.
-        /// </summary>
-        string DeviceId { get; }
-
-        /// <summary>
-        /// User ID to unlink from.
-        /// </summary>
-        string Id { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleUnlinkDeviceRequest : IConsoleUnlinkDeviceRequest
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="device_id")]
-        public string DeviceId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="id")]
-        public string Id { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "DeviceId: ", DeviceId, ", ");
-            output = string.Concat(output, "Id: ", Id, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// A list of users.
-    /// </summary>
-    public interface IConsoleUserList
-    {
-
-        /// <summary>
-        /// Approximate total number of users.
-        /// </summary>
-        int TotalCount { get; }
-
-        /// <summary>
-        /// A list of users.
-        /// </summary>
-        IEnumerable<IApiUser> Users { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleUserList : IConsoleUserList
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="total_count")]
-        public int TotalCount { get; set; }
-
-        /// <inheritdoc />
-        public IEnumerable<IApiUser> Users => _users ?? new List<ApiUser>(0);
-        [DataMember(Name="users")]
-        public List<ApiUser> _users { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "TotalCount: ", TotalCount, ", ");
-            output = string.Concat(output, "Users: [", string.Join(", ", Users), "], ");
+            output = string.Concat(output, "CustomId: ", CustomId, ", ");
+            output = string.Concat(output, "Devices: [", string.Join(", ", Devices), "], ");
+            output = string.Concat(output, "Email: ", Email, ", ");
+            output = string.Concat(output, "User: ", User, ", ");
+            output = string.Concat(output, "VerifyTime: ", VerifyTime, ", ");
+            output = string.Concat(output, "Wallet: ", Wallet, ", ");
             return output;
         }
     }
@@ -1707,206 +1521,9 @@ namespace Nakama.Console
     }
 
     /// <summary>
-    /// List of wallet ledger items for a particular user.
+    /// An export of all information stored for a user account.
     /// </summary>
-    public interface IConsoleWalletLedgerList
-    {
-
-        /// <summary>
-        /// A list of wallet ledger items.
-        /// </summary>
-        IEnumerable<IConsoleWalletLedger> Items { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleWalletLedgerList : IConsoleWalletLedgerList
-    {
-
-        /// <inheritdoc />
-        public IEnumerable<IConsoleWalletLedger> Items => _items ?? new List<ConsoleWalletLedger>(0);
-        [DataMember(Name="items")]
-        public List<ConsoleWalletLedger> _items { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Items: [", string.Join(", ", Items), "], ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// Write a new storage object or update an existing one.
-    /// </summary>
-    public interface IConsoleWriteStorageObjectRequest
-    {
-
-        /// <summary>
-        /// Collection.
-        /// </summary>
-        string Collection { get; }
-
-        /// <summary>
-        /// Key.
-        /// </summary>
-        string Key { get; }
-
-        /// <summary>
-        /// Read permission value.
-        /// </summary>
-        int PermissionRead { get; }
-
-        /// <summary>
-        /// Write permission value.
-        /// </summary>
-        int PermissionWrite { get; }
-
-        /// <summary>
-        /// Owner user ID.
-        /// </summary>
-        string UserId { get; }
-
-        /// <summary>
-        /// Value.
-        /// </summary>
-        string Value { get; }
-
-        /// <summary>
-        /// Version for OCC.
-        /// </summary>
-        string Version { get; }
-    }
-
-    /// <inheritdoc />
-    internal class ConsoleWriteStorageObjectRequest : IConsoleWriteStorageObjectRequest
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="collection")]
-        public string Collection { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="key")]
-        public string Key { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="permission_read")]
-        public int PermissionRead { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="permission_write")]
-        public int PermissionWrite { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="user_id")]
-        public string UserId { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="value")]
-        public string Value { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="version")]
-        public string Version { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "Collection: ", Collection, ", ");
-            output = string.Concat(output, "Key: ", Key, ", ");
-            output = string.Concat(output, "PermissionRead: ", PermissionRead, ", ");
-            output = string.Concat(output, "PermissionWrite: ", PermissionWrite, ", ");
-            output = string.Concat(output, "UserId: ", UserId, ", ");
-            output = string.Concat(output, "Value: ", Value, ", ");
-            output = string.Concat(output, "Version: ", Version, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// A user with additional account details. Always the current user.
-    /// </summary>
-    public interface INakamaapiAccount
-    {
-
-        /// <summary>
-        /// The custom id in the user's account.
-        /// </summary>
-        string CustomId { get; }
-
-        /// <summary>
-        /// The devices which belong to the user's account.
-        /// </summary>
-        IEnumerable<IApiAccountDevice> Devices { get; }
-
-        /// <summary>
-        /// The email address of the user.
-        /// </summary>
-        string Email { get; }
-
-        /// <summary>
-        /// The user object.
-        /// </summary>
-        IApiUser User { get; }
-
-        /// <summary>
-        /// The UNIX time when the user's email was verified.
-        /// </summary>
-        string VerifyTime { get; }
-
-        /// <summary>
-        /// The user's wallet data.
-        /// </summary>
-        string Wallet { get; }
-    }
-
-    /// <inheritdoc />
-    internal class NakamaapiAccount : INakamaapiAccount
-    {
-
-        /// <inheritdoc />
-        [DataMember(Name="custom_id")]
-        public string CustomId { get; set; }
-
-        /// <inheritdoc />
-        public IEnumerable<IApiAccountDevice> Devices => _devices ?? new List<ApiAccountDevice>(0);
-        [DataMember(Name="devices")]
-        public List<ApiAccountDevice> _devices { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="email")]
-        public string Email { get; set; }
-
-        /// <inheritdoc />
-        public IApiUser User => _user;
-        [DataMember(Name="user")]
-        public ApiUser _user { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="verify_time")]
-        public string VerifyTime { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="wallet")]
-        public string Wallet { get; set; }
-
-        public override string ToString()
-        {
-            var output = "";
-            output = string.Concat(output, "CustomId: ", CustomId, ", ");
-            output = string.Concat(output, "Devices: [", string.Join(", ", Devices), "], ");
-            output = string.Concat(output, "Email: ", Email, ", ");
-            output = string.Concat(output, "User: ", User, ", ");
-            output = string.Concat(output, "VerifyTime: ", VerifyTime, ", ");
-            output = string.Concat(output, "Wallet: ", Wallet, ", ");
-            return output;
-        }
-    }
-
-    /// <summary>
-    /// Account information.
-    /// </summary>
-    public interface INakamaconsoleAccount
+    public interface IConsoleAccountExport
     {
 
         /// <summary>
@@ -1915,222 +1532,831 @@ namespace Nakama.Console
         INakamaapiAccount Account { get; }
 
         /// <summary>
-        /// The UNIX time when the account was disabled.
+        /// The user's friends.
         /// </summary>
-        string DisableTime { get; }
+        IEnumerable<IApiFriend> Friends { get; }
+
+        /// <summary>
+        /// The user's groups.
+        /// </summary>
+        IEnumerable<IApiGroup> Groups { get; }
+
+        /// <summary>
+        /// The user's leaderboard records.
+        /// </summary>
+        IEnumerable<IApiLeaderboardRecord> LeaderboardRecords { get; }
+
+        /// <summary>
+        /// The user's chat messages.
+        /// </summary>
+        IEnumerable<IApiChannelMessage> Messages { get; }
+
+        /// <summary>
+        /// The user's notifications.
+        /// </summary>
+        IEnumerable<IApiNotification> Notifications { get; }
+
+        /// <summary>
+        /// The user's storage.
+        /// </summary>
+        IEnumerable<IApiStorageObject> Objects { get; }
+
+        /// <summary>
+        /// The user's wallet ledger items.
+        /// </summary>
+        IEnumerable<IConsoleWalletLedger> WalletLedgers { get; }
     }
 
     /// <inheritdoc />
-    internal class NakamaconsoleAccount : INakamaconsoleAccount
+    [DataContract]
+    internal class ConsoleAccountExport : IConsoleAccountExport
     {
 
         /// <inheritdoc />
         public INakamaapiAccount Account => _account;
-        [DataMember(Name="account")]
+        [DataMember(Name="account"), Preserve]
         public NakamaapiAccount _account { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="disable_time")]
-        public string DisableTime { get; set; }
+        public IEnumerable<IApiFriend> Friends => _friends ?? new List<ApiFriend>(0);
+        [DataMember(Name="friends"), Preserve]
+        public List<ApiFriend> _friends { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiGroup> Groups => _groups ?? new List<ApiGroup>(0);
+        [DataMember(Name="groups"), Preserve]
+        public List<ApiGroup> _groups { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiLeaderboardRecord> LeaderboardRecords => _leaderboardRecords ?? new List<ApiLeaderboardRecord>(0);
+        [DataMember(Name="leaderboard_records"), Preserve]
+        public List<ApiLeaderboardRecord> _leaderboardRecords { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiChannelMessage> Messages => _messages ?? new List<ApiChannelMessage>(0);
+        [DataMember(Name="messages"), Preserve]
+        public List<ApiChannelMessage> _messages { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiNotification> Notifications => _notifications ?? new List<ApiNotification>(0);
+        [DataMember(Name="notifications"), Preserve]
+        public List<ApiNotification> _notifications { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiStorageObject> Objects => _objects ?? new List<ApiStorageObject>(0);
+        [DataMember(Name="objects"), Preserve]
+        public List<ApiStorageObject> _objects { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IConsoleWalletLedger> WalletLedgers => _walletLedgers ?? new List<ConsoleWalletLedger>(0);
+        [DataMember(Name="wallet_ledgers"), Preserve]
+        public List<ConsoleWalletLedger> _walletLedgers { get; set; }
 
         public override string ToString()
         {
             var output = "";
             output = string.Concat(output, "Account: ", Account, ", ");
-            output = string.Concat(output, "DisableTime: ", DisableTime, ", ");
+            output = string.Concat(output, "Friends: [", string.Join(", ", Friends), "], ");
+            output = string.Concat(output, "Groups: [", string.Join(", ", Groups), "], ");
+            output = string.Concat(output, "LeaderboardRecords: [", string.Join(", ", LeaderboardRecords), "], ");
+            output = string.Concat(output, "Messages: [", string.Join(", ", Messages), "], ");
+            output = string.Concat(output, "Notifications: [", string.Join(", ", Notifications), "], ");
+            output = string.Concat(output, "Objects: [", string.Join(", ", Objects), "], ");
+            output = string.Concat(output, "WalletLedgers: [", string.Join(", ", WalletLedgers), "], ");
             return output;
         }
     }
 
     /// <summary>
-    /// Update user account information.
+    /// A collection of zero or more users.
     /// </summary>
-    public interface INakamaconsoleUpdateAccountRequest
+    public interface INakamaapiUser
+    {
+        /// <summary>
+        /// The User objects.
+        /// </summary>
+        IEnumerable<INakamaapiUser> Users { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class NakamaapiUser : INakamaapiUser
+    {
+        /// <inheritdoc />
+        public IEnumerable<INakamaapiUser> Users => _users ?? new List<NakamaapiUser>(0);
+        [DataMember(Name="users"), Preserve]
+
+        public List<NakamaapiUser> _users { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Users: [", string.Join(", ", Users), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// A list of users.
+    /// </summary>
+    public interface IConsoleAccountList
     {
 
         /// <summary>
-        /// Avatar URL.
+        /// Next cursor.
         /// </summary>
-        string AvatarUrl { get; }
+        string NextCursor { get; }
 
         /// <summary>
-        /// Custom ID.
+        /// Approximate total number of users.
         /// </summary>
-        string CustomId { get; }
+        int TotalCount { get; }
 
         /// <summary>
-        /// Device ID modifications.
+        /// A list of users.
         /// </summary>
-        IDictionary<string, string> DeviceIds { get; }
+        IEnumerable<INakamaapiUser> Users { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleAccountList : IConsoleAccountList
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="next_cursor"), Preserve]
+        public string NextCursor { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="total_count"), Preserve]
+        public int TotalCount { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<INakamaapiUser> Users => _users ?? new List<NakamaapiUser>(0);
+        [DataMember(Name="users"), Preserve]
+        public List<NakamaapiUser> _users { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "NextCursor: ", NextCursor, ", ");
+            output = string.Concat(output, "TotalCount: ", TotalCount, ", ");
+            output = string.Concat(output, "Users: [", string.Join(", ", Users), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// Add a new console user
+    /// </summary>
+    public interface IConsoleAddUserRequest
+    {
 
         /// <summary>
-        /// Display name.
-        /// </summary>
-        string DisplayName { get; }
-
-        /// <summary>
-        /// Email.
+        /// Email address of the user.
         /// </summary>
         string Email { get; }
 
         /// <summary>
-        /// User ID to update.
+        /// Subscribe to newsletters
         /// </summary>
-        string Id { get; }
+        bool NewsletterSubscription { get; }
 
         /// <summary>
-        /// Langtag.
-        /// </summary>
-        string LangTag { get; }
-
-        /// <summary>
-        /// Location.
-        /// </summary>
-        string Location { get; }
-
-        /// <summary>
-        /// Metadata.
-        /// </summary>
-        string Metadata { get; }
-
-        /// <summary>
-        /// Password.
+        /// The password of the user.
         /// </summary>
         string Password { get; }
 
         /// <summary>
-        /// Timezone.
+        /// Role of this user;
         /// </summary>
-        string Timezone { get; }
+        ConsoleUserRole Role { get; }
 
         /// <summary>
-        /// Username.
+        /// The username of the user.
         /// </summary>
         string Username { get; }
-
-        /// <summary>
-        /// Wallet.
-        /// </summary>
-        string Wallet { get; }
     }
 
     /// <inheritdoc />
-    internal class NakamaconsoleUpdateAccountRequest : INakamaconsoleUpdateAccountRequest
+    [DataContract]
+    internal class ConsoleAddUserRequest : IConsoleAddUserRequest
     {
 
         /// <inheritdoc />
-        [DataMember(Name="avatar_url")]
-        public string AvatarUrl { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="custom_id")]
-        public string CustomId { get; set; }
-
-        /// <inheritdoc />
-        public IDictionary<string, string> DeviceIds => _deviceIds ?? new Dictionary<string, string>();
-        [DataMember(Name="device_ids")]
-        public Dictionary<string, string> _deviceIds { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="display_name")]
-        public string DisplayName { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="email")]
+        [DataMember(Name="email"), Preserve]
         public string Email { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="id")]
-        public string Id { get; set; }
+        [DataMember(Name="newsletter_subscription"), Preserve]
+        public bool NewsletterSubscription { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="lang_tag")]
-        public string LangTag { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="location")]
-        public string Location { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="metadata")]
-        public string Metadata { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="password")]
+        [DataMember(Name="password"), Preserve]
         public string Password { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="timezone")]
-        public string Timezone { get; set; }
+        public ConsoleUserRole Role => _role;
+        [DataMember(Name="role"), Preserve]
+        public ConsoleUserRole _role { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="username")]
+        [DataMember(Name="username"), Preserve]
         public string Username { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="wallet")]
-        public string Wallet { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "AvatarUrl: ", AvatarUrl, ", ");
-            output = string.Concat(output, "CustomId: ", CustomId, ", ");
-
-            var mapString = "";
-            foreach (var kvp in DeviceIds)
-            {
-                mapString = string.Concat(mapString, "{" + kvp.Key + "=" + kvp.Value + "}");
-            }
-            output = string.Concat(output, "DeviceIds: [" + mapString + "]");
-            output = string.Concat(output, "DisplayName: ", DisplayName, ", ");
             output = string.Concat(output, "Email: ", Email, ", ");
-            output = string.Concat(output, "Id: ", Id, ", ");
-            output = string.Concat(output, "LangTag: ", LangTag, ", ");
-            output = string.Concat(output, "Location: ", Location, ", ");
-            output = string.Concat(output, "Metadata: ", Metadata, ", ");
+            output = string.Concat(output, "NewsletterSubscription: ", NewsletterSubscription, ", ");
             output = string.Concat(output, "Password: ", Password, ", ");
-            output = string.Concat(output, "Timezone: ", Timezone, ", ");
+            output = string.Concat(output, "Role: ", Role, ", ");
             output = string.Concat(output, "Username: ", Username, ", ");
-            output = string.Concat(output, "Wallet: ", Wallet, ", ");
             return output;
         }
     }
 
     /// <summary>
-    /// `Any` contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message.  Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type.  Example 1: Pack and unpack a message in C++.      Foo foo = ...;     Any any;     any.PackFrom(foo);     ...     if (any.UnpackTo(&foo)) {       ...     }  Example 2: Pack and unpack a message in Java.      Foo foo = ...;     Any any = Any.pack(foo);     ...     if (any.is(Foo.class)) {       foo = any.unpack(Foo.class);     }   Example 3: Pack and unpack a message in Python.      foo = Foo(...)     any = Any()     any.Pack(foo)     ...     if any.Is(Foo.DESCRIPTOR):       any.Unpack(foo)       ...   Example 4: Pack and unpack a message in Go       foo := &pb.Foo{...}      any, err := ptypes.MarshalAny(foo)      ...      foo := &pb.Foo{}      if err := ptypes.UnmarshalAny(any, foo); err != nil {        ...      }  The pack methods provided by protobuf library will by default use 'type.googleapis.com/full.type.name' as the type URL and the unpack methods only use the fully qualified type name after the last '/' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z".   JSON ==== The JSON representation of an `Any` value uses the regular representation of the deserialized, embedded message, with an additional field `@type` which contains the type URL. Example:      package google.profile;     message Person {       string first_name = 1;       string last_name = 2;     }      {       "@type": "type.googleapis.com/google.profile.Person",       "firstName": <string>,       "lastName": <string>     }  If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field `value` which holds the custom JSON in addition to the `@type` field. Example (for message [google.protobuf.Duration][]):      {       "@type": "type.googleapis.com/google.protobuf.Duration",       "value": "1.212s"     }
+    /// API Explorer List of Endpoints response message
     /// </summary>
-    public interface IProtobufAny
+    public interface IConsoleApiEndpointDescriptor
     {
 
         /// <summary>
-        /// A URL/resource name that uniquely identifies the type of the serialized protocol buffer message. This string must contain at least one "/" character. The last segment of the URL's path must represent the fully qualified name of the type (as in `path/google.protobuf.Duration`). The name should be in a canonical form (e.g., leading "." is not accepted).  In practice, teams usually precompile into the binary all types that they expect it to use in the context of Any. However, for URLs which use the scheme `http`, `https`, or no scheme, one can optionally set up a type server that maps type URLs to message definitions as follows:  * If no scheme is provided, `https` is assumed. * An HTTP GET on the URL must yield a [google.protobuf.Type][]   value in binary format, or produce an error. * Applications are allowed to cache lookup results based on the   URL, or have them precompiled into a binary to avoid any   lookup. Therefore, binary compatibility needs to be preserved   on changes to types. (Use versioned type names to manage   breaking changes.)  Note: this functionality is not currently available in the official protobuf release, and it is not used for type URLs beginning with type.googleapis.com.  Schemes other than `http`, `https` (or the empty scheme) might be used with implementation specific semantics.
+        /// 
         /// </summary>
-        string TypeUrl { get; }
+        string BodyTemplate { get; }
 
         /// <summary>
-        /// Must be a valid serialized protocol buffer of the above specified type.
+        /// 
         /// </summary>
-        string Value { get; }
+        string Method { get; }
     }
 
     /// <inheritdoc />
-    internal class ProtobufAny : IProtobufAny
+    [DataContract]
+    internal class ConsoleApiEndpointDescriptor : IConsoleApiEndpointDescriptor
     {
 
         /// <inheritdoc />
-        [DataMember(Name="type_url")]
-        public string TypeUrl { get; set; }
+        [DataMember(Name="body_template"), Preserve]
+        public string BodyTemplate { get; set; }
 
         /// <inheritdoc />
-        [DataMember(Name="value")]
-        public string Value { get; set; }
+        [DataMember(Name="method"), Preserve]
+        public string Method { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "TypeUrl: ", TypeUrl, ", ");
-            output = string.Concat(output, "Value: ", Value, ", ");
+            output = string.Concat(output, "BodyTemplate: ", BodyTemplate, ", ");
+            output = string.Concat(output, "Method: ", Method, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// API Explorer List of Endpoints
+    /// </summary>
+    public interface IConsoleApiEndpointList
+    {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IEnumerable<IConsoleApiEndpointDescriptor> Endpoints { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IEnumerable<IConsoleApiEndpointDescriptor> RpcEndpoints { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleApiEndpointList : IConsoleApiEndpointList
+    {
+
+        /// <inheritdoc />
+        public IEnumerable<IConsoleApiEndpointDescriptor> Endpoints => _endpoints ?? new List<ConsoleApiEndpointDescriptor>(0);
+        [DataMember(Name="endpoints"), Preserve]
+        public List<ConsoleApiEndpointDescriptor> _endpoints { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IConsoleApiEndpointDescriptor> RpcEndpoints => _rpcEndpoints ?? new List<ConsoleApiEndpointDescriptor>(0);
+        [DataMember(Name="rpc_endpoints"), Preserve]
+        public List<ConsoleApiEndpointDescriptor> _rpcEndpoints { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Endpoints: [", string.Join(", ", Endpoints), "], ");
+            output = string.Concat(output, "RpcEndpoints: [", string.Join(", ", RpcEndpoints), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// Authenticate a console user with username and password.
+    /// </summary>
+    public interface IConsoleAuthenticateRequest
+    {
+
+        /// <summary>
+        /// The password of the user.
+        /// </summary>
+        string Password { get; }
+
+        /// <summary>
+        /// The username of the user.
+        /// </summary>
+        string Username { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleAuthenticateRequest : IConsoleAuthenticateRequest
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="password"), Preserve]
+        public string Password { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="username"), Preserve]
+        public string Username { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Password: ", Password, ", ");
+            output = string.Concat(output, "Username: ", Username, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// API Explorer request definition for CallApiEndpoint
+    /// </summary>
+    public interface IConsoleCallApiEndpointRequest
+    {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string Body { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string Method { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string UserId { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleCallApiEndpointRequest : IConsoleCallApiEndpointRequest
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="body"), Preserve]
+        public string Body { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="method"), Preserve]
+        public string Method { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="user_id"), Preserve]
+        public string UserId { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Body: ", Body, ", ");
+            output = string.Concat(output, "Method: ", Method, ", ");
+            output = string.Concat(output, "UserId: ", UserId, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// API Explorer response definition for CallApiEndpoint
+    /// </summary>
+    public interface IConsoleCallApiEndpointResponse
+    {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string Body { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string ErrorMessage { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleCallApiEndpointResponse : IConsoleCallApiEndpointResponse
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="body"), Preserve]
+        public string Body { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="error_message"), Preserve]
+        public string ErrorMessage { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Body: ", Body, ", ");
+            output = string.Concat(output, "ErrorMessage: ", ErrorMessage, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// The current server configuration and any associated warnings.
+    /// </summary>
+    public interface IConsoleConfig
+    {
+
+        /// <summary>
+        /// JSON-encoded active server configuration.
+        /// </summary>
+        string Config { get; }
+
+        /// <summary>
+        /// Server version
+        /// </summary>
+        string ServerVersion { get; }
+
+        /// <summary>
+        /// Any warnings about the current config.
+        /// </summary>
+        IEnumerable<IConfigWarning> Warnings { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleConfig : IConsoleConfig
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="config"), Preserve]
+        public string Config { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="server_version"), Preserve]
+        public string ServerVersion { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IConfigWarning> Warnings => _warnings ?? new List<ConfigWarning>(0);
+        [DataMember(Name="warnings"), Preserve]
+        public List<ConfigWarning> _warnings { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Config: ", Config, ", ");
+            output = string.Concat(output, "ServerVersion: ", ServerVersion, ", ");
+            output = string.Concat(output, "Warnings: [", string.Join(", ", Warnings), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// A console user session.
+    /// </summary>
+    public interface IConsoleConsoleSession
+    {
+
+        /// <summary>
+        /// A session token (JWT) for the console user.
+        /// </summary>
+        string Token { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleConsoleSession : IConsoleConsoleSession
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="token"), Preserve]
+        public string Token { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Token: ", Token, ", ");
+            return output;
+        }
+    }
+
+    public interface IRealtimeUserPresence
+    {
+
+    }
+
+    public class RealtimeUserPresence : IRealtimeUserPresence
+    {
+
+    }
+
+    /// <summary>
+    /// Match state
+    /// </summary>
+    public interface IConsoleMatchState
+    {
+        /// <summary>
+        /// Presence list.
+        /// </summary>
+        IEnumerable<IRealtimeUserPresence> Presences { get; }
+
+        /// <summary>
+        /// State.
+        /// </summary>
+        string State { get; }
+
+        /// <summary>
+        /// Current tick number.
+        /// </summary>
+        string Tick { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleMatchState : IConsoleMatchState
+    {
+        /// <inheritdoc />
+        public IEnumerable<IRealtimeUserPresence> Presences => _presences ?? new List<RealtimeUserPresence>(0);
+        [DataMember(Name="presences"), Preserve]
+        public List<RealtimeUserPresence> _presences { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="state"), Preserve]
+        public string State { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="tick"), Preserve]
+        public string Tick { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Presences: [", string.Join(", ", Presences), "], ");
+            output = string.Concat(output, "State: ", State, ", ");
+            output = string.Concat(output, "Tick: ", Tick, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// Runtime information
+    /// </summary>
+    public interface IConsoleRuntimeInfo
+    {
+
+        /// <summary>
+        /// Go loaded modules
+        /// </summary>
+        IEnumerable<IRuntimeInfoModuleInfo> GoModules { get; }
+
+        /// <summary>
+        /// Go registered RPC functions
+        /// </summary>
+        List<string> GoRpcFunctions { get; }
+
+        /// <summary>
+        /// JavaScript loaded modules
+        /// </summary>
+        IEnumerable<IRuntimeInfoModuleInfo> JsModules { get; }
+
+        /// <summary>
+        /// JavaScript registered RPC functions
+        /// </summary>
+        List<string> JsRpcFunctions { get; }
+
+        /// <summary>
+        /// Lua loaded modules
+        /// </summary>
+        IEnumerable<IRuntimeInfoModuleInfo> LuaModules { get; }
+
+        /// <summary>
+        /// Lua registered RPC functions
+        /// </summary>
+        List<string> LuaRpcFunctions { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleRuntimeInfo : IConsoleRuntimeInfo
+    {
+
+        /// <inheritdoc />
+        public IEnumerable<IRuntimeInfoModuleInfo> GoModules => _goModules ?? new List<RuntimeInfoModuleInfo>(0);
+        [DataMember(Name="go_modules"), Preserve]
+        public List<RuntimeInfoModuleInfo> _goModules { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="go_rpc_functions"), Preserve]
+        public List<string> GoRpcFunctions { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IRuntimeInfoModuleInfo> JsModules => _jsModules ?? new List<RuntimeInfoModuleInfo>(0);
+        [DataMember(Name="js_modules"), Preserve]
+        public List<RuntimeInfoModuleInfo> _jsModules { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="js_rpc_functions"), Preserve]
+        public List<string> JsRpcFunctions { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IRuntimeInfoModuleInfo> LuaModules => _luaModules ?? new List<RuntimeInfoModuleInfo>(0);
+        [DataMember(Name="lua_modules"), Preserve]
+        public List<RuntimeInfoModuleInfo> _luaModules { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="lua_rpc_functions"), Preserve]
+        public List<string> LuaRpcFunctions { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "GoModules: [", string.Join(", ", GoModules), "], ");
+            output = string.Concat(output, "GoRpcFunctions: [", string.Join(", ", GoRpcFunctions), "], ");
+            output = string.Concat(output, "JsModules: [", string.Join(", ", JsModules), "], ");
+            output = string.Concat(output, "JsRpcFunctions: [", string.Join(", ", JsRpcFunctions), "], ");
+            output = string.Concat(output, "LuaModules: [", string.Join(", ", LuaModules), "], ");
+            output = string.Concat(output, "LuaRpcFunctions: [", string.Join(", ", LuaRpcFunctions), "], ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// List of nodes and their stats.
+    /// </summary>
+    public interface IConsoleStatusList
+    {
+
+        /// <summary>
+        /// List of nodes and their stats.
+        /// </summary>
+        IEnumerable<IConsoleStatusListStatus> Nodes { get; }
+
+        /// <summary>
+        /// Timestamp
+        /// </summary>
+        string Timestamp { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleStatusList : IConsoleStatusList
+    {
+
+        /// <inheritdoc />
+        public IEnumerable<IConsoleStatusListStatus> Nodes => _nodes ?? new List<ConsoleStatusListStatus>(0);
+        [DataMember(Name="nodes"), Preserve]
+        public List<ConsoleStatusListStatus> _nodes { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="timestamp"), Preserve]
+        public string Timestamp { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "Nodes: [", string.Join(", ", Nodes), "], ");
+            output = string.Concat(output, "Timestamp: ", Timestamp, ", ");
+            return output;
+        }
+    }
+
+    /// <summary>
+    /// The status of a Nakama node.
+    /// </summary>
+    public interface IConsoleStatusListStatus
+    {
+
+        /// <summary>
+        /// Average input bandwidth usage.
+        /// </summary>
+        double AvgInputKbs { get; }
+
+        /// <summary>
+        /// Average response latency in milliseconds.
+        /// </summary>
+        double AvgLatencyMs { get; }
+
+        /// <summary>
+        /// Average output bandwidth usage.
+        /// </summary>
+        double AvgOutputKbs { get; }
+
+        /// <summary>
+        /// Average number of requests per second.
+        /// </summary>
+        double AvgRateSec { get; }
+
+        /// <summary>
+        /// Current number of running goroutines.
+        /// </summary>
+        int GoroutineCount { get; }
+
+        /// <summary>
+        /// Health score.
+        /// </summary>
+        int Health { get; }
+
+        /// <summary>
+        /// Current number of active authoritative matches.
+        /// </summary>
+        int MatchCount { get; }
+
+        /// <summary>
+        /// Node name.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// Currently registered live presences.
+        /// </summary>
+        int PresenceCount { get; }
+
+        /// <summary>
+        /// Currently connected sessions.
+        /// </summary>
+        int SessionCount { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleStatusListStatus : IConsoleStatusListStatus
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="avg_input_kbs"), Preserve]
+        public double AvgInputKbs { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="avg_latency_ms"), Preserve]
+        public double AvgLatencyMs { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="avg_output_kbs"), Preserve]
+        public double AvgOutputKbs { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="avg_rate_sec"), Preserve]
+        public double AvgRateSec { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="goroutine_count"), Preserve]
+        public int GoroutineCount { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="health"), Preserve]
+        public int Health { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="match_count"), Preserve]
+        public int MatchCount { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="name"), Preserve]
+        public string Name { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="presence_count"), Preserve]
+        public int PresenceCount { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="session_count"), Preserve]
+        public int SessionCount { get; set; }
+
+        public override string ToString()
+        {
+            var output = "";
+            output = string.Concat(output, "AvgInputKbs: ", AvgInputKbs, ", ");
+            output = string.Concat(output, "AvgLatencyMs: ", AvgLatencyMs, ", ");
+            output = string.Concat(output, "AvgOutputKbs: ", AvgOutputKbs, ", ");
+            output = string.Concat(output, "AvgRateSec: ", AvgRateSec, ", ");
+            output = string.Concat(output, "GoroutineCount: ", GoroutineCount, ", ");
+            output = string.Concat(output, "Health: ", Health, ", ");
+            output = string.Concat(output, "MatchCount: ", MatchCount, ", ");
+            output = string.Concat(output, "Name: ", Name, ", ");
+            output = string.Concat(output, "PresenceCount: ", PresenceCount, ", ");
+            output = string.Concat(output, "SessionCount: ", SessionCount, ", ");
             return output;
         }
     }
@@ -2138,1159 +2364,209 @@ namespace Nakama.Console
     /// <summary>
     /// 
     /// </summary>
-    public interface IRuntimeError
+    public interface IConsoleStorageCollectionsList
     {
 
         /// <summary>
-        /// 
+        /// Available collection names in the whole of the storage
         /// </summary>
-        int Code { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        IEnumerable<IProtobufAny> Details { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        string Error { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        string Message { get; }
+        List<string> Collections { get; }
     }
 
     /// <inheritdoc />
-    internal class RuntimeError : IRuntimeError
+    [DataContract]
+    internal class ConsoleStorageCollectionsList : IConsoleStorageCollectionsList
     {
 
         /// <inheritdoc />
-        [DataMember(Name="code")]
-        public int Code { get; set; }
-
-        /// <inheritdoc />
-        public IEnumerable<IProtobufAny> Details => _details ?? new List<ProtobufAny>(0);
-        [DataMember(Name="details")]
-        public List<ProtobufAny> _details { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="error")]
-        public string Error { get; set; }
-
-        /// <inheritdoc />
-        [DataMember(Name="message")]
-        public string Message { get; set; }
+        [DataMember(Name="collections"), Preserve]
+        public List<string> Collections { get; set; }
 
         public override string ToString()
         {
             var output = "";
-            output = string.Concat(output, "Code: ", Code, ", ");
-            output = string.Concat(output, "Details: [", string.Join(", ", Details), "], ");
-            output = string.Concat(output, "Error: ", Error, ", ");
-            output = string.Concat(output, "Message: ", Message, ", ");
+            output = string.Concat(output, "Collections: [", string.Join(", ", Collections), "], ");
             return output;
         }
     }
 
     /// <summary>
-    /// The low level client for the Nakama API.
+    /// List of storage objects.
     /// </summary>
-    internal class ApiClient
+    public interface IConsoleStorageList
     {
-        private readonly Uri _baseUri;
-        private readonly int _timeout;
-        public readonly IHttpAdapter HttpAdapter;
-
-        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, int timeout = 10)
-        {
-            _baseUri = baseUri;
-            _timeout = timeout;
-            HttpAdapter = httpAdapter;
-        }
 
         /// <summary>
-        /// Delete all information stored for a user account.
+        /// Next page cursor if any
         /// </summary>
-        public async Task DeleteAccountAsync(
-            string bearerToken,
-            string id,
-            bool? recordDeletion)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-            if (recordDeletion != null) {
-                queryParams = string.Concat(queryParams, "record_deletion=", recordDeletion.ToString().ToLower(), "&");
-            }
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
+        string NextCursor { get; }
 
         /// <summary>
-        /// Get detailed account information for a single user.
+        /// List of storage objects matching list/filter operation.
         /// </summary>
-        public async Task<INakamaconsoleAccount> GetAccountAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<NakamaconsoleAccount>();
-        }
+        IEnumerable<IApiStorageObject> Objects { get; }
 
         /// <summary>
-        /// Update one or more fields on a user account.
+        /// Approximate total number of storage objects.
         /// </summary>
-        public async Task UpdateAccountAsync(
-            string bearerToken,
-            string id,
-            NakamaconsoleUpdateAccountRequest body)
+        int TotalCount { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleStorageList : IConsoleStorageList
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="next_cursor"), Preserve]
+        public string NextCursor { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<IApiStorageObject> Objects => _objects ?? new List<ApiStorageObject>(0);
+        [DataMember(Name="objects"), Preserve]
+        public List<ApiStorageObject> _objects { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="total_count"), Preserve]
+        public int TotalCount { get; set; }
+
+        public override string ToString()
         {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-            if (body == null)
-            {
-                throw new ArgumentException("'body' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var jsonBody = body.ToJson();
-            content = Encoding.UTF8.GetBytes(jsonBody);
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
+            var output = "";
+            output = string.Concat(output, "NextCursor: ", NextCursor, ", ");
+            output = string.Concat(output, "Objects: [", string.Join(", ", Objects), "], ");
+            output = string.Concat(output, "TotalCount: ", TotalCount, ", ");
+            return output;
         }
+    }
+
+    /// <summary>
+    /// Unlink a particular device ID from a user's account.
+    /// </summary>
+    public interface IConsoleUnlinkDeviceRequest
+    {
 
         /// <summary>
-        /// Ban a user.
+        /// Device ID to unlink.
         /// </summary>
-        public async Task BanUserAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/ban";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
+        string DeviceId { get; }
 
         /// <summary>
-        /// Export all information stored about a user account.
+        /// User ID to unlink from.
         /// </summary>
-        public async Task<IConsoleAccountExport> ExportAccountAsync(
-            string bearerToken,
-            string id)
+        string Id { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleUnlinkDeviceRequest : IConsoleUnlinkDeviceRequest
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="device_id"), Preserve]
+        public string DeviceId { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="id"), Preserve]
+        public string Id { get; set; }
+
+        public override string ToString()
         {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/export";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleAccountExport>();
+            var output = "";
+            output = string.Concat(output, "DeviceId: ", DeviceId, ", ");
+            output = string.Concat(output, "Id: ", Id, ", ");
+            return output;
         }
+    }
+
+    /// <summary>
+    /// A list of console users.
+    /// </summary>
+    public interface IConsoleUserList
+    {
 
         /// <summary>
-        /// Get a user's list of friend relationships.
+        /// A list of users.
         /// </summary>
-        public async Task<IApiFriendList> GetFriendsAsync(
-            string bearerToken,
-            string id)
+        IEnumerable<IConsoleUserListUser> Users { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleUserList : IConsoleUserList
+    {
+
+        /// <inheritdoc />
+        public IEnumerable<IConsoleUserListUser> Users => _users ?? new List<ConsoleUserListUser>(0);
+        [DataMember(Name="users"), Preserve]
+        public List<ConsoleUserListUser> _users { get; set; }
+
+        public override string ToString()
         {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/friend";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiFriendList>();
+            var output = "";
+            output = string.Concat(output, "Users: [", string.Join(", ", Users), "], ");
+            return output;
         }
+    }
+
+    /// <summary>
+    /// A console user
+    /// </summary>
+    public interface IConsoleUserListUser
+    {
 
         /// <summary>
-        /// Delete the friend relationship between two users.
+        /// Email of the user
         /// </summary>
-        public async Task DeleteFriendAsync(
-            string bearerToken,
-            string id,
-            string friendId)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-            if (friendId == null)
-            {
-                throw new ArgumentException("'friendId' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/friend/{friend_id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-            urlpath = urlpath.Replace("{friend_id}", Uri.EscapeDataString(friendId));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
+        string Email { get; }
 
         /// <summary>
-        /// Get a list of groups the user is a member of.
+        /// Role of the user;
         /// </summary>
-        public async Task<IApiUserGroupList> GetGroupsAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/group";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiUserGroupList>();
-        }
+        ConsoleUserRole Role { get; }
 
         /// <summary>
-        /// Remove a user from a group.
+        /// Username of the user
         /// </summary>
-        public async Task DeleteGroupUserAsync(
-            string bearerToken,
-            string id,
-            string groupId)
+        string Username { get; }
+    }
+
+    /// <inheritdoc />
+    [DataContract]
+    internal class ConsoleUserListUser : IConsoleUserListUser
+    {
+
+        /// <inheritdoc />
+        [DataMember(Name="email"), Preserve]
+        public string Email { get; set; }
+
+        /// <inheritdoc />
+        public ConsoleUserRole Role => _role;
+        [DataMember(Name="role"), Preserve]
+        public ConsoleUserRole _role { get; set; }
+
+        /// <inheritdoc />
+        [DataMember(Name="username"), Preserve]
+        public string Username { get; set; }
+
+        public override string ToString()
         {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-            if (groupId == null)
-            {
-                throw new ArgumentException("'groupId' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/group/{group_id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-            urlpath = urlpath.Replace("{group_id}", Uri.EscapeDataString(groupId));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
+            var output = "";
+            output = string.Concat(output, "Email: ", Email, ", ");
+            output = string.Concat(output, "Role: ", Role, ", ");
+            output = string.Concat(output, "Username: ", Username, ", ");
+            return output;
         }
+    }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum ConsoleUserRole
+    {
         /// <summary>
-        /// Unban a user.
+        /// 
         /// </summary>
-        public async Task UnbanUserAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unban";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the custom ID from a user account.
-        /// </summary>
-        public async Task UnlinkCustomAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/custom";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the device ID from a user account.
-        /// </summary>
-        public async Task UnlinkDeviceAsync(
-            string bearerToken,
-            string id,
-            ConsoleUnlinkDeviceRequest body)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-            if (body == null)
-            {
-                throw new ArgumentException("'body' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/device";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var jsonBody = body.ToJson();
-            content = Encoding.UTF8.GetBytes(jsonBody);
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the email from a user account.
-        /// </summary>
-        public async Task UnlinkEmailAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/email";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the Facebook ID from a user account.
-        /// </summary>
-        public async Task UnlinkFacebookAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/facebook";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the Facebook ID from a user account.
-        /// </summary>
-        public async Task UnlinkFacebookInstantGameAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/facebookinstantgame";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the Game Center ID from a user account.
-        /// </summary>
-        public async Task UnlinkGameCenterAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/gamecenter";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the Google ID from a user account.
-        /// </summary>
-        public async Task UnlinkGoogleAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/google";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Unlink the Steam ID from a user account.
-        /// </summary>
-        public async Task UnlinkSteamAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/unlink/steam";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Get a list of the user's wallet transactions.
-        /// </summary>
-        public async Task<IConsoleWalletLedgerList> GetWalletLedgerAsync(
-            string bearerToken,
-            string id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/wallet";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleWalletLedgerList>();
-        }
-
-        /// <summary>
-        /// Delete a wallet ledger item.
-        /// </summary>
-        public async Task DeleteWalletLedgerAsync(
-            string bearerToken,
-            string id,
-            string walletId)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("'id' is required but was null.");
-            }
-            if (walletId == null)
-            {
-                throw new ArgumentException("'walletId' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/account/{id}/wallet/{wallet_id}";
-            urlpath = urlpath.Replace("{id}", Uri.EscapeDataString(id));
-            urlpath = urlpath.Replace("{wallet_id}", Uri.EscapeDataString(walletId));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Authenticate a console user with username and password.
-        /// </summary>
-        public async Task<IConsoleConsoleSession> AuthenticateAsync(
-            ConsoleAuthenticateRequest body)
-        {
-            if (body == null)
-            {
-                throw new ArgumentException("'body' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/authenticate";
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "POST";
-            var headers = new Dictionary<string, string>();
-
-            byte[] content = null;
-            var jsonBody = body.ToJson();
-            content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleConsoleSession>();
-        }
-
-        /// <summary>
-        /// Get server config and configuration warnings.
-        /// </summary>
-        public async Task<IConsoleConfig> GetConfigAsync(
-            string bearerToken)
-        {
-
-            var urlpath = "/v2/console/config";
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleConfig>();
-        }
-
-        /// <summary>
-        /// Get current status data for all nodes.
-        /// </summary>
-        public async Task<IConsoleStatusList> GetStatusAsync(
-            string bearerToken)
-        {
-
-            var urlpath = "/v2/console/status";
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleStatusList>();
-        }
-
-        /// <summary>
-        /// Delete all storage data.
-        /// </summary>
-        public async Task DeleteStorageAsync(
-            string bearerToken)
-        {
-
-            var urlpath = "/v2/console/storage";
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// List (and optionally filter) storage data.
-        /// </summary>
-        public async Task<IConsoleStorageList> ListStorageAsync(
-            string bearerToken,
-            string userId)
-        {
-
-            var urlpath = "/v2/console/storage";
-
-            var queryParams = "";
-            if (userId != null) {
-                queryParams = string.Concat(queryParams, "user_id=", Uri.EscapeDataString(userId), "&");
-            }
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleStorageList>();
-        }
-
-        /// <summary>
-        /// Delete a storage object.
-        /// </summary>
-        public async Task DeleteStorageObjectAsync(
-            string bearerToken,
-            string collection,
-            string key,
-            string userId,
-            string version)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentException("'collection' is required but was null.");
-            }
-            if (key == null)
-            {
-                throw new ArgumentException("'key' is required but was null.");
-            }
-            if (userId == null)
-            {
-                throw new ArgumentException("'userId' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/storage/{collection}/{key}/{user_id}";
-            urlpath = urlpath.Replace("{collection}", Uri.EscapeDataString(collection));
-            urlpath = urlpath.Replace("{key}", Uri.EscapeDataString(key));
-            urlpath = urlpath.Replace("{user_id}", Uri.EscapeDataString(userId));
-
-            var queryParams = "";
-            if (version != null) {
-                queryParams = string.Concat(queryParams, "version=", Uri.EscapeDataString(version), "&");
-            }
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Get a storage object.
-        /// </summary>
-        public async Task<IApiStorageObject> GetStorageAsync(
-            string bearerToken,
-            string collection,
-            string key,
-            string userId)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentException("'collection' is required but was null.");
-            }
-            if (key == null)
-            {
-                throw new ArgumentException("'key' is required but was null.");
-            }
-            if (userId == null)
-            {
-                throw new ArgumentException("'userId' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/storage/{collection}/{key}/{user_id}";
-            urlpath = urlpath.Replace("{collection}", Uri.EscapeDataString(collection));
-            urlpath = urlpath.Replace("{key}", Uri.EscapeDataString(key));
-            urlpath = urlpath.Replace("{user_id}", Uri.EscapeDataString(userId));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObject>();
-        }
-
-        /// <summary>
-        /// Write a new storage object or replace an existing one.
-        /// </summary>
-        public async Task<IApiStorageObjectAck> WriteStorageObjectAsync(
-            string bearerToken,
-            string collection,
-            string key,
-            string userId,
-            ConsoleWriteStorageObjectRequest body)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentException("'collection' is required but was null.");
-            }
-            if (key == null)
-            {
-                throw new ArgumentException("'key' is required but was null.");
-            }
-            if (userId == null)
-            {
-                throw new ArgumentException("'userId' is required but was null.");
-            }
-            if (body == null)
-            {
-                throw new ArgumentException("'body' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/storage/{collection}/{key}/{user_id}";
-            urlpath = urlpath.Replace("{collection}", Uri.EscapeDataString(collection));
-            urlpath = urlpath.Replace("{key}", Uri.EscapeDataString(key));
-            urlpath = urlpath.Replace("{user_id}", Uri.EscapeDataString(userId));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "PUT";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var jsonBody = body.ToJson();
-            content = Encoding.UTF8.GetBytes(jsonBody);
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ApiStorageObjectAck>();
-        }
-
-        /// <summary>
-        /// Delete a storage object.
-        /// </summary>
-        public async Task DeleteStorageObject2Async(
-            string bearerToken,
-            string collection,
-            string key,
-            string userId,
-            string version)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentException("'collection' is required but was null.");
-            }
-            if (key == null)
-            {
-                throw new ArgumentException("'key' is required but was null.");
-            }
-            if (userId == null)
-            {
-                throw new ArgumentException("'userId' is required but was null.");
-            }
-            if (version == null)
-            {
-                throw new ArgumentException("'version' is required but was null.");
-            }
-
-            var urlpath = "/v2/console/storage/{collection}/{key}/{user_id}/{version}";
-            urlpath = urlpath.Replace("{collection}", Uri.EscapeDataString(collection));
-            urlpath = urlpath.Replace("{key}", Uri.EscapeDataString(key));
-            urlpath = urlpath.Replace("{user_id}", Uri.EscapeDataString(userId));
-            urlpath = urlpath.Replace("{version}", Uri.EscapeDataString(version));
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// Delete (non-recorded) all user accounts.
-        /// </summary>
-        public async Task DeleteUsersAsync(
-            string bearerToken)
-        {
-
-            var urlpath = "/v2/console/user";
-
-            var queryParams = "";
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "DELETE";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-        }
-
-        /// <summary>
-        /// List (and optionally filter) users.
-        /// </summary>
-        public async Task<IConsoleUserList> ListUsersAsync(
-            string bearerToken,
-            string filter,
-            bool? banned,
-            bool? tombstones)
-        {
-
-            var urlpath = "/v2/console/user";
-
-            var queryParams = "";
-            if (filter != null) {
-                queryParams = string.Concat(queryParams, "filter=", Uri.EscapeDataString(filter), "&");
-            }
-            if (banned != null) {
-                queryParams = string.Concat(queryParams, "banned=", banned.ToString().ToLower(), "&");
-            }
-            if (tombstones != null) {
-                queryParams = string.Concat(queryParams, "tombstones=", tombstones.ToString().ToLower(), "&");
-            }
-
-            var uri = new UriBuilder(_baseUri)
-            {
-                Path = urlpath,
-                Query = queryParams
-            }.Uri;
-
-            var method = "GET";
-            var headers = new Dictionary<string, string>();
-            var header = string.Concat("Bearer ", bearerToken);
-            headers.Add("Authorization", header);
-
-            byte[] content = null;
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, _timeout);
-            return contents.FromJson<ConsoleUserList>();
-        }
+        USER_ROLE_UNKNOWN = 0
     }
 }
