@@ -97,7 +97,15 @@ namespace Nakama
             // Special case for when the result is not successs, throw an error
             var decoded = Client.JsonSerializer.FromJson<Dictionary<string, object>>(Client.Encryption.Decrypt(bytes));
             string message = decoded.ContainsKey("message") ? decoded["message"].ToString() : string.Empty;
-            int grpcCode = decoded.ContainsKey("code") ? (int)decoded["code"] : -1;
+            int grpcCode = -1;
+            if(decoded.ContainsKey("code"))
+            {
+                try
+                {
+                    grpcCode = Convert.ToInt32(decoded["code"]);
+                }
+                catch (System.Exception){}
+            }
 
             var exception = new ApiResponseException((int)response.StatusCode, message, grpcCode);
 
