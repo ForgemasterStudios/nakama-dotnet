@@ -31,7 +31,7 @@ namespace Nakama
     /// </remarks>
     public class HttpRequestAdapter : IHttpAdapter
     {
-        public TransientExceptionDelegate TransientExceptionDelegate => IsTransientException;
+        public TransientExceptionDelegate TransientExceptionDelegate { get; }
 
         public IClient Client { get; set; }
         private readonly HttpClient _httpClient;
@@ -50,12 +50,17 @@ namespace Nakama
             }
         }
 
-        public HttpRequestAdapter(HttpClient httpClient)
+        public HttpRequestAdapter(HttpClient httpClient, TransientExceptionDelegate transientExceptionDelegate = null)
         {
             _httpClient = httpClient;
 
             // remove cap of max timeout on HttpClient from 100 seconds.
             _httpClient.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+
+            if (transientExceptionDelegate != null)
+                TransientExceptionDelegate = transientExceptionDelegate;
+            else
+                TransientExceptionDelegate = IsTransientException;
         }
 
         /// <inheritdoc cref="IHttpAdapter"/>
@@ -91,7 +96,7 @@ namespace Nakama
 
             Client.Logger?.InfoFormat("Received: method='{0}', uri='{1}', status='{2}'", method, uri, response.StatusCode);
 
-            if (((int)response.StatusCode) >= 500)
+            if (((int)response.StatusCode) > 500)
             {
                 // TODO think of best way to map HTTP code to GRPC code since we can't rely
                 // on server to process it. Manually adding the mapping to SDK seems brittle.
@@ -107,7 +112,15 @@ namespace Nakama
             if (decoded == null)
                 decoded = new Dictionary<string, object>();
             string message = decoded.ContainsKey("message") ? decoded["message"].ToString() : string.Empty;
-            int grpcCode = decoded.ContainsKey("code") ? (int) decoded["code"] : -1;
+            int grpcCode = -1;
+            if(decoded.ContainsKey("code"))
+            {
+                try
+                {
+                    grpcCode = Convert.ToInt32(decoded["code"]);
+                }
+                catch (System.Exception){}
+            }
 
             var exception = new ApiResponseException((int) response.StatusCode, message, grpcCode);
 
@@ -128,7 +141,7 @@ namespace Nakama
         /// <param name="decompression">If automatic decompression should be enabled with the HTTP adapter.</param>
         /// <param name="compression">If automatic compression should be enabled with the HTTP adapter.</param>
         /// <returns>A new HTTP adapter.</returns>
-        public static IHttpAdapter WithGzip(bool decompression = false, bool compression = false)
+        public static IHttpAdapter WithGzip(bool decompression = false, bool compression = false, TransientExceptionDelegate transientExceptionDelegate = null)
         {
             var handler = new HttpClientHandler();
             if (handler.SupportsAutomaticDecompression && decompression)
@@ -139,7 +152,7 @@ namespace Nakama
 
             var client =
                 new HttpClient(compression ? (HttpMessageHandler) new GZipHttpClientHandler(handler) : handler);
-            return new HttpRequestAdapter(client);
+            return new HttpRequestAdapter(client, transientExceptionDelegate);
         }
 
         private static bool IsTransientException(Exception e)
