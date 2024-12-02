@@ -75,6 +75,10 @@ namespace Nakama
         /// </summary>
         ILogger Logger { get; set; }
 
+        IJsonSerializer JsonSerializer { get; }
+
+        ISymmetricEncryption Encryption { get; }
+
         /// <summary>
         /// Add one or more friends by id or username.
         /// </summary>

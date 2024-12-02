@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// A create message for a match on the server.
     /// </summary>
+    [DataContract]
     internal class MatchCreateMessage
     {
         [DataMember(Name = "name"), Preserve]

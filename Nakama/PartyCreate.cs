@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Create a new party.
     /// </summary>
+    [DataContract]
     internal class PartyCreate
     {
         [DataMember(Name = "open"), Preserve] public bool Open { get; set; }

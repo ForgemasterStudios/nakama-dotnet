@@ -20,6 +20,7 @@ namespace Nakama
     /// <summary>
     /// Incoming notification for one or more new presences attempting to join the party.
     /// </summary>
+    [DataContract]
     internal class PartyJoinRequest : IPartyJoinRequest
     {
         [DataMember(Name = "party_id"), Preserve]

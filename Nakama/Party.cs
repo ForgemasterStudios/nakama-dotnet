@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Incoming information about a party.
     /// </summary>
+    [DataContract]
     internal class Party : IParty
     {
         [DataMember(Name = "party_id"), Preserve]

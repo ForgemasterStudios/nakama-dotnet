@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Leave a party.
     /// </summary>
+    [DataContract]
     internal class PartyLeave
     {
         [DataMember(Name = "party_id"), Preserve]

@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Remove the party from the matchmaker.
     /// </summary>
+    [DataContract]
     internal class PartyMatchmakerRemove
     {
         [DataMember(Name = "party_id"), Preserve]

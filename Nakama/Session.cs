@@ -82,6 +82,8 @@ namespace Nakama
                 $"Session(AuthToken='{AuthToken}', Created={Created}, CreateTime={CreateTime}, ExpireTime={ExpireTime}, RefreshToken={RefreshToken}, RefreshExpireTime={RefreshExpireTime}, Variables={variables}, Username='{Username}', UserId='{UserId}')";
         }
 
+        private IJsonSerializer _serializer = new TinyJson.TinyJsonSerializer();
+
         internal Session(string authToken, string refreshToken, bool created)
         {
             Created = created;
@@ -104,7 +106,7 @@ namespace Nakama
             RefreshToken = refreshToken;
 
             var json = JwtUnpack(authToken);
-            var decoded = json.FromJson<Dictionary<string, object>>();
+            var decoded = _serializer.FromJson<Dictionary<string, object>>(json);
             ExpireTime = Convert.ToInt64(decoded["exp"]);
             Username = decoded["usn"].ToString();
             UserId = decoded["uid"].ToString();
@@ -120,7 +122,7 @@ namespace Nakama
             if (!string.IsNullOrEmpty(refreshToken))
             {
                 var json2 = JwtUnpack(refreshToken);
-                var decoded2 = json2.FromJson<Dictionary<string, object>>();
+                var decoded2 = _serializer.FromJson<Dictionary<string, object>>(json2);
                 RefreshExpireTime = Convert.ToInt64(decoded2["exp"]);
             }
         }

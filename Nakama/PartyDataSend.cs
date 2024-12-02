@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Send data to a party.
     /// </summary>
+    [DataContract]
     internal class PartyDataSend
     {
       [DataMember(Name = "party_id"), Preserve]

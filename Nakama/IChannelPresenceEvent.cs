@@ -61,6 +61,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IChannelPresenceEvent"/>
+    [DataContract]
     internal class ChannelPresenceEvent : IChannelPresenceEvent
     {
         [DataMember(Name="channel_id"), Preserve]

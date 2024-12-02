@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// A leave message for a match on the server.
     /// </summary>
+    [DataContract]
     internal class MatchLeaveMessage
     {
         [DataMember(Name="match_id"), Preserve]

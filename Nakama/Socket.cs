@@ -108,6 +108,8 @@ namespace Nakama
         public ILogger Logger { get; set; }
 
         private readonly ISocketAdapter _adapter;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly ISymmetricEncryption _encryption;
         private readonly Uri _baseUri;
         private readonly Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>> _responses;
         private readonly TimeSpan _sendTimeoutSec;
@@ -117,7 +119,7 @@ namespace Nakama
         /// <summary>
         /// A new socket with default options.
         /// </summary>
-        public Socket() : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort, new WebSocketStdlibAdapter())
+        public Socket() : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort, new WebSocketStdlibAdapter(), new TinyJson.TinyJsonSerializer(), new NoEncryption())
         {
         }
 
@@ -126,7 +128,7 @@ namespace Nakama
         /// </summary>
         /// <param name="adapter">The adapter for use with the socket.</param>
         public Socket(ISocketAdapter adapter) : this(Client.DefaultScheme, Client.DefaultHost, Client.DefaultPort,
-            adapter)
+            adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption())
         {
         }
 
@@ -137,11 +139,15 @@ namespace Nakama
         /// <param name="host">The host address of the server.</param>
         /// <param name="port">The port number of the server.</param>
         /// <param name="adapter">The adapter for use with the socket.</param>
+        /// <param name="jsonSerializer">The JSON adapter to use when encoding and decoding JSON.</param>
+        /// <param name="encryption">The encryption adapter to use when encoding and decoding messages.</param>
         /// <param name="sendTimeoutSec">The maximum time allowed for a message to be sent.</param>
-        public Socket(string scheme, string host, int port, ISocketAdapter adapter, int sendTimeoutSec = DefaultSendTimeout)
+        public Socket(string scheme, string host, int port, ISocketAdapter adapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption, int sendTimeoutSec = DefaultSendTimeout)
         {
             Logger = NullLogger.Instance;
             _adapter = adapter;
+            _jsonSerializer = jsonSerializer;
+            _encryption = encryption;
             _baseUri = new UriBuilder(scheme, host, port).Uri;
             _responses = new Dictionary<string, TaskCompletionSource<WebSocketMessageEnvelope>>();
             _sendTimeoutSec = TimeSpan.FromSeconds(sendTimeoutSec);
@@ -785,17 +791,32 @@ namespace Nakama
         /// <returns>A new socket with connection settings from the client.</returns>
         public static ISocket From(IClient client, ISocketAdapter adapter)
         {
+            return From(client, adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption());
+        }
+
+        /// <summary>
+        /// Build a socket from a client object and socket adapter.
+        /// </summary>
+        /// <param name="client">A client object.</param>
+        /// <param name="adapter">The socket adapter to use with the connection.</param>
+        /// <param name="jsonSerializer">The JSON adapter to use when encoding and decoding JSON.</param>
+        /// <returns>A new socket with connection settings from the client.</returns>
+        public static ISocket From(IClient client, ISocketAdapter adapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption)
+        {
             var scheme = client.Scheme.ToLower().Equals("http") ? "ws" : "wss";
-            return new Socket(scheme, client.Host, client.Port, adapter) { Logger = client.Logger };
+            // TODO improve how logger is passed into socket object.
+            return new Socket(scheme, client.Host, client.Port, adapter, jsonSerializer, encryption) {Logger = (client as Client)?.Logger};
         }
 
         private void ProcessMessage(ArraySegment<byte> buffer)
         {
-            var contents = System.Text.Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+            byte[] slice = new byte[buffer.Count];
+            Array.Copy(buffer.Array, buffer.Offset, slice, 0, buffer.Count);
+            var contents = _encryption.Decrypt(slice);
 
             Logger?.DebugFormat("Received JSON over web socket: {0}", contents);
 
-            var envelope = contents.FromJson<WebSocketMessageEnvelope>();
+            var envelope = _jsonSerializer.FromJson<WebSocketMessageEnvelope>(contents);
             try
             {
                 if (!string.IsNullOrEmpty(envelope.Cid))
@@ -910,11 +931,11 @@ namespace Nakama
 
         private async Task<WebSocketMessageEnvelope> SendAsync(WebSocketMessageEnvelope envelope)
         {
-            var json = envelope.ToJson();
+            var json = _jsonSerializer.ToJson(envelope);
 
             Logger?.DebugFormat("Sending JSON over web socket: {0}", json);
 
-            var buffer = System.Text.Encoding.UTF8.GetBytes(json);
+            var buffer = _encryption.Encrypt(json);
             var cts = new CancellationTokenSource(_sendTimeoutSec);
             if (string.IsNullOrEmpty(envelope.Cid))
             {

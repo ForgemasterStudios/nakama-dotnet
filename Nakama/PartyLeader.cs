@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Announcement of a new party leader.
     /// </summary>
+    [DataContract]
     internal class PartyLeader : IPartyLeader
     {
         [DataMember(Name = "party_id"), Preserve]

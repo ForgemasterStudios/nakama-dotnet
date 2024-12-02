@@ -17,6 +17,7 @@ using System.Runtime.Serialization;
 namespace Nakama
 {
     /// <inheritdoc cref="IPartyMatchmakerTicket"/>
+    [DataContract]
     internal class PartyMatchmakerTicket : IPartyMatchmakerTicket
     {
         [DataMember(Name = "party_id"), Preserve]

@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Kick a party member, or decline a request to join.
     /// </summary>
+    [DataContract]
     internal class PartyMemberRemove
     {
         [DataMember(Name = "party_id"), Preserve]

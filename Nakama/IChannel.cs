@@ -61,6 +61,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IChannel"/>
+    [DataContract]
     internal class Channel : IChannel
     {
         [DataMember(Name="id"), Preserve]

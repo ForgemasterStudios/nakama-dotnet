@@ -55,18 +55,8 @@ namespace Nakama
         /// <inheritdoc cref="IClient.Host"/>
         public string Host { get; }
 
-        /// <summary>
-        /// The logger to use with the client.
-        /// </summary>
-        public ILogger Logger
-        {
-            get => _logger;
-            set
-            {
-                _apiClient.HttpAdapter.Logger = value;
-                _logger = value;
-            }
-        }
+        /// <inheritdoc cref="IClient.Logger"/>
+        public ILogger Logger { get; set; }
 
         /// <inheritdoc cref="IClient.Port"/>
         public int Port { get; }
@@ -87,55 +77,65 @@ namespace Nakama
             set => _apiClient.Timeout = value;
         }
 
+        private IJsonSerializer _jsonSerializer;
+        public IJsonSerializer JsonSerializer => _jsonSerializer;
+
+        private ISymmetricEncryption _encryption;
+        public ISymmetricEncryption Encryption => _encryption;
+
         private readonly ApiClient _apiClient;
-        private ILogger _logger;
         private readonly RetryInvoker _retryInvoker;
 
         private const int DefaultTimeout = 15;
 
         /// There is a bug in Unity's WebGL implementation that prevents the proper invocation of constructors with more
         /// than four parameters. For this reason, avoid defining constructors that do this.
-        public Client(string serverKey) : this(serverKey, HttpRequestAdapter.WithGzip())
+        public Client(string serverKey, bool autoRefreshSession = true) : this(serverKey, HttpRequestAdapter.WithGzip(), autoRefreshSession)
         {
         }
 
-        public Client(string serverKey, IHttpAdapter adapter) : this(DefaultScheme,
-            DefaultHost, DefaultPort, serverKey, adapter)
+        public Client(string serverKey, IHttpAdapter adapter, bool autoRefreshSession = true) : this(DefaultScheme,
+            DefaultHost, DefaultPort, serverKey, adapter, new TinyJson.TinyJsonSerializer(), new NoEncryption(), autoRefreshSession)
         {
         }
 
-        public Client(string scheme, string host, int port, string serverKey) : this(
-            scheme, host, port, serverKey, HttpRequestAdapter.WithGzip())
+        public Client(string scheme, string host, int port, string serverKey, bool autoRefreshSession = true) : this(
+            scheme, host, port, serverKey, HttpRequestAdapter.WithGzip(), new TinyJson.TinyJsonSerializer(), new NoEncryption(), autoRefreshSession)
         {
         }
 
-        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter,
-            bool autoRefreshSession = true)
+        public Client(string scheme, string host, int port, string serverKey, IHttpAdapter adapter, IJsonSerializer serializer, ISymmetricEncryption encryption, bool autoRefreshSession = true)
         {
             AutoRefreshSession = autoRefreshSession;
             Host = host;
             Port = port;
             Scheme = scheme;
             ServerKey = serverKey;
-            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, DefaultTimeout);
+            _encryption = encryption;
+            _jsonSerializer = serializer;
+            adapter.Client = this;
+            _apiClient = new ApiClient(new UriBuilder(scheme, host, port).Uri, adapter, serializer, encryption, DefaultTimeout);
             Logger = NullLogger.Instance; // must set logger last.
 
             _retryInvoker = new RetryInvoker(adapter.TransientExceptionDelegate);
         }
 
         public Client(Uri uri, string serverKey) : this(
-            uri, serverKey, HttpRequestAdapter.WithGzip())
+            uri, serverKey, HttpRequestAdapter.WithGzip(), new TinyJson.TinyJsonSerializer(), new NoEncryption())
         {
         }
 
-        public Client(Uri uri, string serverKey, IHttpAdapter adapter, bool autoRefreshSession = true)
+        public Client(Uri uri, string serverKey, IHttpAdapter adapter, IJsonSerializer serializer, ISymmetricEncryption encryption, bool autoRefreshSession = true)
         {
             AutoRefreshSession = autoRefreshSession;
             Host = uri.Host;
             Port = uri.Port;
             Scheme = uri.Scheme;
             ServerKey = serverKey;
-            _apiClient = new ApiClient(uri, adapter, DefaultTimeout);
+            _encryption = encryption;
+            _jsonSerializer = serializer;
+            adapter.Client = this;
+            _apiClient = new ApiClient(uri, adapter, serializer, encryption, DefaultTimeout);
             Logger = NullLogger.Instance; // must set logger last.
 
             _retryInvoker = new RetryInvoker(adapter.TransientExceptionDelegate);

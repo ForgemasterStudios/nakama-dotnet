@@ -20,6 +20,7 @@ namespace Nakama
     /// <summary>
     /// Incoming party data delivered from the server.
     /// </summary>
+    [DataContract]
     internal class PartyData : IPartyData
     {
         private static readonly byte[] NoBytes = new byte[0];

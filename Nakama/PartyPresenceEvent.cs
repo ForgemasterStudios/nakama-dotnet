@@ -19,6 +19,7 @@ using static System.String;
 namespace Nakama
 {
     /// <inheritdoc cref="IPartyPresenceEvent"/>
+    [DataContract]
     internal class PartyPresenceEvent : IPartyPresenceEvent
     {
         [DataMember(Name = "party_id"), Preserve]

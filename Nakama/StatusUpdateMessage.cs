@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Update the status of the current user.
     /// </summary>
+    [DataContract]
     internal class StatusUpdateMessage
     {
         [DataMember(Name="status"), Preserve]

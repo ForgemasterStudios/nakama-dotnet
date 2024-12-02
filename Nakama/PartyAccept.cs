@@ -17,6 +17,7 @@ using System.Runtime.Serialization;
 namespace Nakama
 {
     // Accept a request to join.
+    [DataContract]
     internal class PartyAccept
     {
         [DataMember(Name = "party_id"), Preserve]

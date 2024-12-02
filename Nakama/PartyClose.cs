@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// End a party, kicking all party members, and closing it.
     /// </summary>
+    [DataContract]
     internal class PartyClose : IPartyClose
     {
         [DataMember(Name = "party_id"), Preserve]

@@ -41,6 +41,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IMatchPresenceEvent"/>
+    [DataContract]
     internal class MatchPresenceEvent : IMatchPresenceEvent
     {
         public IEnumerable<IUserPresence> Joins => _joins ?? UserPresence.NoPresences;

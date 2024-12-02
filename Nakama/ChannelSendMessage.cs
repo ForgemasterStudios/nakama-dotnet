@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Send a chat message to a channel on the server.
     /// </summary>
+    [DataContract]
     internal class ChannelSendMessage
     {
         [DataMember(Name="channel_id"), Preserve]

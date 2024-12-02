@@ -31,12 +31,24 @@ namespace Nakama
     /// </remarks>
     public class HttpRequestAdapter : IHttpAdapter
     {
-        /// <inheritdoc cref="IHttpAdapter.Logger"/>
-        public ILogger Logger { get; set; }
-
         public TransientExceptionDelegate TransientExceptionDelegate => IsTransientException;
 
+        public IClient Client { get; set; }
         private readonly HttpClient _httpClient;
+
+        // Cache the content type on first call since its not going to change
+        private string _contentType;
+        private string ContentType 
+        {
+            get
+            {
+                if(string.IsNullOrEmpty(_contentType))
+                {
+                    _contentType = Client.Encryption.IsEnabled ? "application/octet-stream" : "application/json";
+                }
+                return _contentType;
+            }
+        }
 
         public HttpRequestAdapter(HttpClient httpClient)
         {
@@ -47,8 +59,8 @@ namespace Nakama
         }
 
         /// <inheritdoc cref="IHttpAdapter"/>
-        public async Task<string> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body,
-            int timeout, CancellationToken? userCancelToken)
+        public async Task<byte[]> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             var request = new HttpRequestMessage
             {
@@ -56,7 +68,7 @@ namespace Nakama
                 Method = new HttpMethod(method),
                 Headers =
                 {
-                    Accept = {new MediaTypeWithQualityHeaderValue("application/json")}
+                    Accept = {new MediaTypeWithQualityHeaderValue(ContentType)}
                 }
             };
 
@@ -68,41 +80,32 @@ namespace Nakama
             if (body != null)
             {
                 request.Content = new ByteArrayContent(body);
+                request.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue(ContentType);
             }
 
-            var timeoutTokenSource = new CancellationTokenSource();
-            CancellationToken timeoutToken = timeoutTokenSource.Token;
-            timeoutTokenSource.CancelAfter(TimeSpan.FromSeconds(timeout));
+            Client.Logger?.InfoFormat("Send: method='{0}', uri='{1}', body='{2}'", method, uri, body);
 
-            CancellationTokenSource linkedSource = null;
-
-            if (userCancelToken.HasValue)
-            {
-                linkedSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutToken, userCancelToken.Value);
-            }
-
-            Logger?.InfoFormat("Send: method='{0}', uri='{1}', body='{2}'", method, uri, body);
-
-            var response = await _httpClient.SendAsync(request, linkedSource == null ? timeoutToken : linkedSource.Token);
-
-            var contents = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            var bytes = await response.Content.ReadAsByteArrayAsync();
             response.Content?.Dispose();
+
+            Client.Logger?.InfoFormat("Received: method='{0}', uri='{1}', status='{2}'", method, uri, response.StatusCode);
 
             if (((int)response.StatusCode) >= 500)
             {
                 // TODO think of best way to map HTTP code to GRPC code since we can't rely
                 // on server to process it. Manually adding the mapping to SDK seems brittle.
-                throw new ApiResponseException((int) response.StatusCode, contents, -1);
+                throw new ApiResponseException((int) response.StatusCode, Client.Encryption.Decrypt(bytes), -1);
             }
-
-            Logger?.InfoFormat("Received: status={0}, contents='{1}'", response.StatusCode, contents);
 
             if (response.IsSuccessStatusCode)
             {
-                return contents;
+                return bytes;
             }
 
-            var decoded = contents.FromJson<Dictionary<string, object>>();
+            var decoded = Client.JsonSerializer.FromJson<Dictionary<string, object>>(Client.Encryption.Decrypt(bytes));
+            if (decoded == null)
+                decoded = new Dictionary<string, object>();
             string message = decoded.ContainsKey("message") ? decoded["message"].ToString() : string.Empty;
             int grpcCode = decoded.ContainsKey("code") ? (int) decoded["code"] : -1;
 

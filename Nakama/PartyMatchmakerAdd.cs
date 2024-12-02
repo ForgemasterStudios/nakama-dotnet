@@ -20,6 +20,7 @@ namespace Nakama
     /// <summary>
     /// Begin matchmaking as a party.
     /// </summary>
+    [DataContract]
     internal class PartyMatchmakerAdd
     {
         [DataMember(Name = "party_id"), Preserve]

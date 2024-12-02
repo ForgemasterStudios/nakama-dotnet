@@ -145,6 +145,7 @@ namespace {{.Namespace}}
     }
 
     /// <inheritdoc />
+    [DataContract]
     internal class {{ $classname }} : I{{ $classname }}
     {
         {{- range $propname, $property := $definition.Properties }}
@@ -261,14 +262,18 @@ namespace {{.Namespace}}
     internal class ApiClient
     {
         public readonly IHttpAdapter HttpAdapter;
+        public readonly IJsonSerializer JsonSerializer;
+        public readonly ISymmetricEncryption Encryption;
         public int Timeout { get; set; }
 
         private readonly Uri _baseUri;
 
-        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, int timeout = 10)
+        public ApiClient(Uri baseUri, IHttpAdapter httpAdapter, IJsonSerializer jsonSerializer, ISymmetricEncryption encryption, int timeout = 10)
         {
             _baseUri = baseUri;
             HttpAdapter = httpAdapter;
+            JsonSerializer = jsonSerializer;
+            Encryption = encryption;
             Timeout = timeout;
         }
 
@@ -338,7 +343,7 @@ namespace {{.Namespace}}
         {{- end }}
         {{- $isPreviousParam = true}}
     {{- end }},
-            CancellationToken? cancellationToken)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             {{- range $parameter := $operation.Parameters }}
             {{- if $parameter.Required }}
@@ -424,19 +429,21 @@ namespace {{.Namespace}}
             headers.Add("Authorization", header);
             {{- end }}
 
+            var timeoutCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellation.Token);
+
             byte[] content = null;
             {{- range $parameter := $operation.Parameters }}
             {{- if eq $parameter.In "body" }}
-            var jsonBody = {{ $parameter.Name }}.ToJson();
-            content = Encoding.UTF8.GetBytes(jsonBody);
+            content = Encryption.Encrypt(JsonSerializer.ToJson({{ $parameter.Name }}));
             {{- end }}
             {{- end }}
 
             {{- if $operation.Responses.Ok.Schema.Ref }}
-            var contents = await HttpAdapter.SendAsync(method, uri, headers, content, Timeout, cancellationToken);
-            return contents.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>();
+            var response = await HttpAdapter.SendAsync(method, uri, headers, content, cancellationTokenSource.Token);
+            return JsonSerializer.FromJson<{{ $operation.Responses.Ok.Schema.Ref | cleanRef }}>(Encryption.Decrypt(response));
             {{- else }}
-            await HttpAdapter.SendAsync(method, uri, headers, content, Timeout, cancellationToken);
+            await HttpAdapter.SendAsync(method, uri, headers, content, cancellationTokenSource.Token);
             {{- end }}
         }
         {{- end }}

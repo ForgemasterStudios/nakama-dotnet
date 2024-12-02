@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Join a party, or request to join if the party is not open.
     /// </summary>
+    [DataContract]
     internal class PartyJoin
     {
         [DataMember(Name = "party_id"), Preserve]

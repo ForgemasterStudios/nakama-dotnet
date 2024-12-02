@@ -22,6 +22,7 @@ namespace Nakama
     /// <summary>
     /// Follow one or more other users for status updates.
     /// </summary>
+    [DataContract]
     internal class StatusFollowMessage
     {
         [DataMember(Name = "user_ids"), Preserve] public List<string> UserIds { get; set; }

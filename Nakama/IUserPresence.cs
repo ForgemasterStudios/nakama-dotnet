@@ -55,6 +55,7 @@ namespace Nakama
     }
 
     /// <inheritdoc cref="IUserPresence"/>
+    [DataContract]
     internal class UserPresence : IUserPresence
     {
         internal static readonly IReadOnlyList<UserPresence> NoPresences = new List<UserPresence>(0);

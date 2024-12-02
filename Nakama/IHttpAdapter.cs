@@ -31,9 +31,9 @@ namespace Nakama
         TransientExceptionDelegate TransientExceptionDelegate { get; }
 
         /// <summary>
-        /// The logger to use with the adapter.
+        /// Gets called from Client constructor.
         /// </summary>
-        ILogger Logger { get; set; }
+        IClient Client { get; set; }
 
         /// <summary>
         /// Send a HTTP request.
@@ -43,8 +43,8 @@ namespace Nakama
         /// <param name="headers">Request headers to set.</param>
         /// <param name="body">Request content body to set.</param>
         /// <param name="timeoutSec">Request timeout.</param>
-        /// <param name="userCancelToken">A user-generated token that can be used to cancel the request.</param>
+        /// <param name="cancellationToken">A user-generated token that can be used to cancel the request.</param>
         /// <returns>A task which resolves to the contents of the response.</returns>
-        Task<string> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body, int timeoutSec = 3, CancellationToken? userCancelToken = null);
+        Task<byte[]> SendAsync(string method, Uri uri, IDictionary<string, string> headers, byte[] body, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

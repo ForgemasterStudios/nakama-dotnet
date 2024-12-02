@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Request a list of pending join requests for a party.
     /// </summary>
+    [DataContract]
     internal class PartyJoinRequestList
     {
         [DataMember(Name = "party_id"), Preserve] public string PartyId { get; set; }

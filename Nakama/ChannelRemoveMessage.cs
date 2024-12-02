@@ -21,6 +21,7 @@ namespace Nakama
     /// <summary>
     /// Remove a message from a chat channel.
     /// </summary>
+    [DataContract]
     internal class ChannelRemoveMessage
     {
         [DataMember(Name="channel_id"), Preserve]

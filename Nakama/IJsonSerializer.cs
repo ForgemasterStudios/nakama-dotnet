@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Nakama Authors
+ * Copyright 2020 The Nakama Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-using System.Runtime.Serialization;
-
+/// <summary>
+/// An interface that must be implemented in order for clients to provide their own JSON parser.
+/// Please note that if your parser requires member annotations, you must modify the code generator
+/// with the new annotation scheme.
+/// </summary>
 namespace Nakama
 {
-    /// <summary>
-    /// A leave message to a chat channel.
-    /// </summary>
-    [DataContract]
-    internal class ChannelLeaveMessage
+    public interface IJsonSerializer
     {
-        [DataMember(Name="channel_id"), Preserve]
-        public string ChannelId { get; set; }
-
-        public override string ToString()
-        {
-            return $"ChannelLeaveMessage(ChannelId='{ChannelId}')";
-        }
+        string ToJson(object obj);
+        T FromJson<T>(string json);
     }
 }

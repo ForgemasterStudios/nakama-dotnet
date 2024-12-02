@@ -19,6 +19,7 @@ namespace Nakama
     /// <summary>
     /// Promote a new party leader.
     /// </summary>
+    [DataContract]
     internal class PartyPromote
     {
         [DataMember(Name = "party_id")]
